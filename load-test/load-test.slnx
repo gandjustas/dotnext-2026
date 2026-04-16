@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path=".dockerignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="load-test.http" />
+    <File Path="load-test.js" />
+  </Folder>
+  <Folder Name="/Backend/">
+    <Project Path="Backend/Grpc/Grpc.csproj" />
+    <Project Path="Backend/Rest/Rest.csproj" />
+  </Folder>
+  <Folder Name="/Modules/">
+    <Project Path="Modules/Local/Local.csproj" />
+    <Project Path="Modules/RemoteGrpc/RemoteGrpc.csproj" />
+    <Project Path="Modules/RemoteRest/RemoteRest.csproj" />
+    <Project Path="Modules/RemoteRmq/RemoteRmq.csproj" />
+  </Folder>
+  <Project Path="Contracts/Contracts.csproj" />
+  <Project Path="Web/Web.csproj" />
+</Solution>

@@ -1,0 +1,44 @@
+{
+  "profiles": {
+    "web-local": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "Local"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7243;http://localhost:5112"
+    },
+    "web-remote-rest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "RemoteRest",
+        "Services__rest__http__0": "localhost:5289"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7243;http://localhost:5112"
+    },
+    "web-remote-grpc": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "RemoteGrpc",
+        "Services__grpc__https__0": "localhost:7229"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7243;http://localhost:5112"
+    },
+    "web-remote-rmq": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "RemoteRmq",
+        "ConnectionStrings__Rabbit": "host=localhost"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7243;http://localhost:5112"
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
+}

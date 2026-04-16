@@ -1,0 +1,147 @@
+CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+7e322ceb4dd1   load-test-web-remote-grpc-1   0.10%     95.97MiB / 31.32GiB   0.30%     349MB / 867MB     717kB / 4.1kB    38
+7c5cfa74facd   load-test-web-remote-rest-1   0.05%     84.16MiB / 31.32GiB   0.26%     407MB / 456MB     483kB / 4.1kB    37
+98306f03e14a   load-test-web-local-1         214.44%   69.27MiB / 31.32GiB   0.22%     367MB / 530MB     2.2MB / 4.1kB    54
+a2a82ade6cea   load-test-grpc-backend-1      0.05%     20.9MiB / 31.32GiB    0.07%     481MB / 77.8MB    578kB / 0B       29
+990d4707b165   load-test-web-remote-rmq-1    0.01%     64.93MiB / 31.32GiB   0.20%     541MB / 725MB     152kB / 4.1kB    34
+7ebf78352eab   load-test-rest-backend-1      0.01%     18.6MiB / 31.32GiB    0.06%     214MB / 240MB     274kB / 0B       27
+4dbbb8ef90ff   load-test-rabbit-1            0.15%     110MiB / 31.32GiB     0.34%     554MB / 424MB     47.5MB / 369kB   53
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 1215626 40486.727988/s
+    checks_succeeded...: 99.96%  1215254 out of 1215626
+    checks_failed......: 0.03%   372 out of 1215626
+
+    ✗ status is 200
+      ↳  99% — ✓ 607627 / ✗ 186
+    ✗ answer is correct
+      ↳  99% — ✓ 607627 / ✗ 186
+
+    HTTP
+    http_req_duration..............: avg=12.07ms min=0s med=9.83ms  max=342.79ms p(90)=17.31ms p(95)=22.33ms
+      { expected_response:true }...: avg=12.07ms min=0s med=9.83ms  max=342.79ms p(90)=17.31ms p(95)=22.33ms
+    http_req_failed................: 0.03%  186 out of 607813
+    http_reqs......................: 607813 20243.363994/s
+
+    EXECUTION
+    iteration_duration.............: avg=12.32ms min=0s med=10.02ms max=342.79ms p(90)=17.64ms p(95)=23.13ms
+    iterations.....................: 607809 20243.230773/s
+    vus............................: 250    min=250           max=250
+    vus_max........................: 250    min=250           max=250
+
+    NETWORK
+    data_received..................: 100 MB 3.3 MB/s
+    data_sent......................: 56 MB  1.9 MB/s
+
+
+
+CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+7e322ceb4dd1   load-test-web-remote-grpc-1   0.01%     94.67MiB / 31.32GiB   0.30%     349MB / 867MB     717kB / 4.1kB    38
+7c5cfa74facd   load-test-web-remote-rest-1   445.40%   125.9MiB / 31.32GiB   0.39%     472MB / 529MB     483kB / 4.1kB    55
+98306f03e14a   load-test-web-local-1         0.03%     66.2MiB / 31.32GiB    0.21%     447MB / 644MB     2.2MB / 4.1kB    37
+a2a82ade6cea   load-test-grpc-backend-1      0.04%     20.93MiB / 31.32GiB   0.07%     481MB / 77.8MB    578kB / 0B       30
+990d4707b165   load-test-web-remote-rmq-1    0.09%     64.94MiB / 31.32GiB   0.20%     541MB / 725MB     152kB / 4.1kB    34
+7ebf78352eab   load-test-rest-backend-1      124.90%   37.93MiB / 31.32GiB   0.12%     248MB / 278MB     274kB / 0B       46
+4dbbb8ef90ff   load-test-rabbit-1            0.23%     110MiB / 31.32GiB     0.34%     554MB / 424MB     47.5MB / 369kB   53
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 864662 28795.127098/s
+    checks_succeeded...: 99.96% 864370 out of 864662
+    checks_failed......: 0.03%  292 out of 864662
+
+    ✗ status is 200
+      ↳  99% — ✓ 432185 / ✗ 146
+    ✗ answer is correct
+      ↳  99% — ✓ 432185 / ✗ 146
+
+    HTTP
+    http_req_duration..............: avg=17.15ms min=0s med=14.99ms max=171.52ms p(90)=23.53ms p(95)=29.17ms
+      { expected_response:true }...: avg=17.15ms min=0s med=14.99ms max=171.52ms p(90)=23.53ms p(95)=29.19ms
+    http_req_failed................: 0.03%  146 out of 432331
+    http_reqs......................: 432331 14397.563549/s
+
+    EXECUTION
+    iteration_duration.............: avg=17.32ms min=0s med=15.12ms max=186.48ms p(90)=23.77ms p(95)=29.44ms
+    iterations.....................: 432327 14397.43034/s
+    vus............................: 250    min=250           max=250
+    vus_max........................: 250    min=250           max=250
+
+    NETWORK
+    data_received..................: 71 MB  2.4 MB/s
+    data_sent......................: 40 MB  1.3 MB/s
+
+
+CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+7e322ceb4dd1   load-test-web-remote-grpc-1   458.88%   149.5MiB / 31.32GiB   0.47%     377MB / 938MB     717kB / 4.1kB    56
+7c5cfa74facd   load-test-web-remote-rest-1   0.05%     118.1MiB / 31.32GiB   0.37%     577MB / 646MB     483kB / 4.1kB    37
+98306f03e14a   load-test-web-local-1         0.01%     66.14MiB / 31.32GiB   0.21%     447MB / 644MB     2.2MB / 4.1kB    36
+a2a82ade6cea   load-test-grpc-backend-1      96.04%    21MiB / 31.32GiB      0.07%     521MB / 84.2MB    578kB / 0B       45
+990d4707b165   load-test-web-remote-rmq-1    0.10%     64.98MiB / 31.32GiB   0.20%     541MB / 725MB     152kB / 4.1kB    34
+7ebf78352eab   load-test-rest-backend-1      0.04%     20.12MiB / 31.32GiB   0.06%     304MB / 340MB     274kB / 0B       28
+4dbbb8ef90ff   load-test-rabbit-1            0.78%     110MiB / 31.32GiB     0.34%     554MB / 424MB     47.5MB / 369kB   53 
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 892252 29639.854829/s
+    checks_succeeded...: 99.97% 892028 out of 892252
+    checks_failed......: 0.02%  224 out of 892252
+
+    ✗ status is 200
+      ↳  99% — ✓ 446014 / ✗ 112
+    ✗ answer is correct
+      ↳  99% — ✓ 446014 / ✗ 112
+
+    HTTP
+    http_req_duration..............: avg=16.65ms min=0s med=14.26ms max=355.27ms p(90)=22.7ms  p(95)=29.42ms
+      { expected_response:true }...: avg=16.66ms min=0s med=14.26ms max=355.27ms p(90)=22.7ms  p(95)=29.42ms
+    http_req_failed................: 0.02%  112 out of 446126
+    http_reqs......................: 446126 14819.927415/s
+
+    EXECUTION
+    iteration_duration.............: avg=16.83ms min=0s med=14.41ms max=355.27ms p(90)=22.91ms p(95)=29.8ms 
+    iterations.....................: 446122 14819.794538/s
+    vus............................: 250    min=250           max=250
+    vus_max........................: 250    min=250           max=250
+
+    NETWORK
+    data_received..................: 73 MB  2.4 MB/s
+    data_sent......................: 41 MB  1.4 MB/s
+
+
+CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+7e322ceb4dd1   load-test-web-remote-grpc-1   0.13%     132.9MiB / 31.32GiB   0.41%     446MB / 1.11GB    717kB / 4.1kB    37
+7c5cfa74facd   load-test-web-remote-rest-1   0.07%     117.8MiB / 31.32GiB   0.37%     577MB / 646MB     483kB / 4.1kB    37
+98306f03e14a   load-test-web-local-1         0.01%     66.18MiB / 31.32GiB   0.21%     447MB / 644MB     2.2MB / 4.1kB    37
+a2a82ade6cea   load-test-grpc-backend-1      0.05%     21.32MiB / 31.32GiB   0.07%     616MB / 99.7MB    578kB / 0B       29
+990d4707b165   load-test-web-remote-rmq-1    365.36%   106.2MiB / 31.32GiB   0.33%     618MB / 829MB     152kB / 4.1kB    51
+7ebf78352eab   load-test-rest-backend-1      0.01%     20.46MiB / 31.32GiB   0.06%     304MB / 340MB     274kB / 0B       29
+4dbbb8ef90ff   load-test-rabbit-1            300.18%   137.4MiB / 31.32GiB   0.43%     634MB / 484MB     47.7MB / 369kB   53
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 640632 21299.194972/s
+    checks_succeeded...: 99.95% 640366 out of 640632
+    checks_failed......: 0.04%  266 out of 640632
+
+    ✗ status is 200
+      ↳  99% — ✓ 320183 / ✗ 133
+    ✗ answer is correct
+      ↳  99% — ✓ 320183 / ✗ 133
+
+    HTTP
+    http_req_duration..............: avg=23.28ms min=0s       med=21.17ms max=137.65ms p(90)=30.93ms p(95)=36.8ms 
+      { expected_response:true }...: avg=23.29ms min=1.85ms   med=21.17ms max=137.65ms p(90)=30.93ms p(95)=36.81ms
+    http_req_failed................: 0.04%  133 out of 320316
+    http_reqs......................: 320316 10649.597486/s
+
+    EXECUTION
+    iteration_duration.............: avg=23.43ms min=564.69µs med=21.31ms max=137.65ms p(90)=31.07ms p(95)=37.05ms
+    iterations.....................: 320312 10649.464497/s
+    vus............................: 250    min=250           max=250
+    vus_max........................: 250    min=250           max=250
+
+    NETWORK
+    data_received..................: 53 MB  1.8 MB/s
+    data_sent......................: 29 MB  977 kB/s

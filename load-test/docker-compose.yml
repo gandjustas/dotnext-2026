@@ -1,0 +1,58 @@
+services:
+  web-local:
+    image: load-test-modular-host
+    build: &build
+      context: .
+      dockerfile: Web/Dockerfile      
+    ports:
+      - 5001:8080
+    environment:
+        HOSTINGSTARTUPASSEMBLIES: Local
+
+  web-remote-rest:
+    image: load-test-modular-host
+    build: *build
+    ports:
+      - 5002:8080
+    environment:
+        HOSTINGSTARTUPASSEMBLIES: RemoteRest
+        Services__rest__http__0: rest-backend:8080
+    depends_on:
+      - rest-backend
+
+  web-remote-grpc:
+    image: load-test-modular-host
+    build: *build
+    ports:
+      - 5003:8080
+    environment:
+        HOSTINGSTARTUPASSEMBLIES: RemoteGrpc
+        Services__grpc__http__0: grpc-backend:8080
+    depends_on:
+      - grpc-backend
+  
+  web-remote-rmq:
+    image: load-test-modular-host
+    build: *build
+    ports:
+      - 5004:8080
+    environment:
+        HOSTINGSTARTUPASSEMBLIES: RemoteRmq
+        ConnectionStrings__Rabbit: Host=rabbit
+    depends_on:
+      rabbit:
+        condition: service_started
+        restart: true
+
+  rest-backend:
+    build:
+      context: .
+      dockerfile: Backend/Rest/Dockerfile      
+  
+  grpc-backend:
+    build:
+      context: .
+      dockerfile: Backend/Grpc/Dockerfile      
+
+  rabbit:
+    image: rabbitmq:latest

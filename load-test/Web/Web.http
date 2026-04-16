@@ -1,0 +1,9 @@
+@Web_HostAddress = https://localhost:7243
+
+
+@a=1
+@b=2
+GET {{Web_HostAddress}}/test?a={{a}}&b={{b}}
+
+###
+

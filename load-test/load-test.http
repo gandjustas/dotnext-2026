@@ -1,0 +1,16 @@
+@a=1
+@b=2
+GET http://localhost:5001/test?a={{a}}&b={{b}}
+
+###
+
+GET http://localhost:5002/test?a={{a}}&b={{b}}
+
+###
+
+GET http://localhost:5003/test?a={{a}}&b={{b}}
+
+###
+GET http://localhost:5004/test?a={{a}}&b={{b}}
+
+###
