@@ -1,0 +1,48 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "monolith": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5018",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "Orders.Entities;Customers.Entities;Monolith"
+      }
+    },
+    "customersMicroservice": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5019",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "Customers.Entities;CustomersMicroservice"
+      }
+    },
+    "ordersMicroservice": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5020",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "Orders.Entities;OrdersMicroservice",
+        "Services__customers__http__0": "http://localhost:5019"
+      }
+    },
+    "microservices": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5018",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HOSTINGSTARTUPASSEMBLIES": "Customers.Entities;Orders.Entities;CustomersMicroservice;OrdersMicroservice",
+        "Services__customers__http__0": "http://localhost:5018"
+      }
+    }
+
+  }
+}

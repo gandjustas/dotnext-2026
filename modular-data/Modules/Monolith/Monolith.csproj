@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Entities\Orders\Orders.csproj" />
+    <ProjectReference Include="..\..\Entities\Customers\Customers.csproj" />
+  </ItemGroup>
+
+
+</Project>

@@ -1,0 +1,23 @@
+@app = http://localhost:5018
+@customersMicroservice = http://localhost:5019
+@ordersMicroservice = http://localhost:5020
+
+GET {{app}}/orders/unpaid
+Accept: application/json
+
+###
+
+POST {{app}}/seed
+Accept: application/json
+
+###
+
+GET {{customersMicroservice}}/сustomers
+Accept: application/json
+
+###
+
+GET {{ordersMicroservice}}/orders/unpaid
+Accept: application/json
+
+###

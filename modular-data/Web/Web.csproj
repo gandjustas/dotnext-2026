@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>7cacc7cf-e4bb-4a3d-9189-6b78dbdb538c</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Entities\Customers\Customers.csproj" />
+    <ProjectReference Include="..\Entities\Orders\Orders.csproj" />
+    <ProjectReference Include="..\Modules\Microservices\Customers\CustomersMicroservice.csproj" />
+    <ProjectReference Include="..\Modules\Microservices\Orders\OrdersMicroservice.csproj" />
+    <ProjectReference Include="..\Modules\Monolith\Monolith.csproj" />
+  </ItemGroup>
+
+</Project>

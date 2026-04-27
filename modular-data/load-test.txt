@@ -1,0 +1,64 @@
+CONTAINER ID   NAME                       CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+9b5ebafb802a   modular-data-monolith-1    0.06%     58.74MiB / 31.32GiB   0.18%     230kB / 387kB    0B / 0B          34
+71f095da94c4   modular-data-customers-1   223.78%   119.1MiB / 31.32GiB   0.37%     158MB / 184MB    86kB / 0B        65
+0ce66dc3cdbe   modular-data-orders-1      413.36%   149.1MiB / 31.32GiB   0.46%     680MB / 1.91GB   106kB / 0B       73
+26cd273f78c5   modular-data-postgres-1    206.44%   183.4MiB / 31.32GiB   0.57%     37.4MB / 654MB   1.14MB / 606kB   99
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 54019   1795.703475/s
+    checks_succeeded...: 100.00% 54019 out of 54019
+    checks_failed......: 0.00%   0 out of 54019
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=27.66ms min=3.33ms med=26.29ms max=154.51ms p(90)=38.19ms p(95)=43.48ms
+      { expected_response:true }...: avg=27.66ms min=3.33ms med=26.29ms max=154.51ms p(90)=38.19ms p(95)=43.48ms
+    http_req_failed................: 0.00%  0 out of 54019
+    http_reqs......................: 54019  1795.703475/s
+
+    EXECUTION
+    iteration_duration.............: avg=27.77ms min=5.69ms med=26.38ms max=154.51ms p(90)=38.28ms p(95)=43.56ms
+    iterations.....................: 54009  1795.371054/s
+    vus............................: 50     min=50         max=50
+    vus_max........................: 50     min=50         max=50
+
+    NETWORK
+    data_received..................: 4.0 GB 134 MB/s
+    data_sent......................: 4.7 MB 156 kB/s
+
+
+
+
+CONTAINER ID   NAME                       CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O        PIDS
+0ce66dc3cdbe   modular-data-orders-1      0.01%     65.04MiB / 31.32GiB   0.20%     290kB / 770kB     1.13MB / 0B       33
+9b5ebafb802a   modular-data-monolith-1    508.92%   143.4MiB / 31.32GiB   0.45%     3.22GB / 5.72GB   8.22MB / 0B       67
+71f095da94c4   modular-data-customers-1   0.00%     60.48MiB / 31.32GiB   0.19%     78kB / 81.1kB     16.4kB / 0B       32
+26cd273f78c5   modular-data-postgres-1    235.60%   126.1MiB / 31.32GiB   0.39%     40.8MB / 3.2GB    16.1MB / 1.07MB   59
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 62239   2011.185629/s
+    checks_succeeded...: 100.00% 62239 out of 62239
+    checks_failed......: 0.00%   0 out of 62239
+
+    ✓ status is 200
+
+    HTTP
+    http_req_duration..............: avg=24ms    min=2.99ms med=22.94ms max=772.13ms p(90)=29.49ms p(95)=33.52ms
+      { expected_response:true }...: avg=24ms    min=2.99ms med=22.94ms max=772.13ms p(90)=29.49ms p(95)=33.52ms
+    http_req_failed................: 0.00%  0 out of 62239
+    http_reqs......................: 62239  2011.185629/s
+
+    EXECUTION
+    iteration_duration.............: avg=24.09ms min=2.99ms med=23.03ms max=144.65ms p(90)=29.6ms  p(95)=33.6ms 
+    iterations.....................: 62229  2010.86249/s
+    vus............................: 50     min=50         max=50
+    vus_max........................: 50     min=50         max=50
+
+    NETWORK
+    data_received..................: 4.6 GB 150 MB/s
+    data_sent......................: 5.4 MB 175 kB/s
+

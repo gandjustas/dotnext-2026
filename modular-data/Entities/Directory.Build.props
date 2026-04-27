@@ -1,0 +1,12 @@
+<Project>
+	<!-- See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory?view=visualstudio#use-case-multi-level-merging -->
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="'' != $([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<PropertyGroup>
+		<AssemblyName>$(MSBuildProjectName.Replace(" ", "_")).Entities</AssemblyName>
+	</PropertyGroup>	
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+</Project>
