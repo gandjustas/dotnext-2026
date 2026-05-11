@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Modules/" >
+    <Project Path="Modules/Api/ApiModule.csproj" />
+    <Project Path="Modules/Mvc/MvcModule.csproj" />
+    <Project Path="Modules/Razor/RazorModule.csproj" />
+  </Folder>
+  <Project Path="Host/Host.csproj" />
+</Solution>

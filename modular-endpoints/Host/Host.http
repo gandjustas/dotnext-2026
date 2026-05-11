@@ -1,0 +1,17 @@
+@ApiModule_HostAddress = http://localhost:5160
+
+GET {{ApiModule_HostAddress}}/host
+Accept: application/json
+
+###
+
+GET {{ApiModule_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+
+GET {{ApiModule_HostAddress}}/weatherforecast
+Accept: application/json
+
+###

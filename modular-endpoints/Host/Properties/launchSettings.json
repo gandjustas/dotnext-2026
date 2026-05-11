@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "NoModules": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5160",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "AllModules": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5160",
+      "environmentVariables": {
+        "HOSTINGSTARTUPASSEMBLIES": "ApiModule;RazorModule;MvcModule",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "ApiModule": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5160",
+      "environmentVariables": {
+        "HOSTINGSTARTUPASSEMBLIES": "ApiModule",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "RazorModule": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5160",
+      "environmentVariables": {
+        "HOSTINGSTARTUPASSEMBLIES": "RazorModule",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "MvcModule": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:5160/MvcModule",
+      "applicationUrl": "http://localhost:5160/",
+      "environmentVariables": {
+        "HOSTINGSTARTUPASSEMBLIES": "MvcModule",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+
+  }
+}

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Modules\Api\ApiModule.csproj" />
+      <ProjectReference Include="..\Modules\Razor\RazorModule.csproj" />
+      <ProjectReference Include="..\Modules\Mvc\MvcModule.csproj" />
+    </ItemGroup>
+	<PropertyGroup>
+		<GenerateMvcApplicationPartsAssemblyAttributes>false</GenerateMvcApplicationPartsAssemblyAttributes>
+	</PropertyGroup>
+</Project>
