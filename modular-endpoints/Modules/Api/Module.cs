@@ -2,24 +2,14 @@
 [assembly: HostingStartup(typeof(ApiModule.Module))]
 namespace ApiModule;
 
-class Module : IHostingStartup, IStartupFilter
+class Module : ModuleBase
 {
     static readonly string[] summaries = [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     ];
-    public void Configure(IWebHostBuilder builder)
-    {
-        builder.ConfigureServices(services =>
-        {
-            services.AddSingleton<IStartupFilter>(this);
-        });
-    }
 
-    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) =>
-    (builder) =>
+    protected override void Configure(IApplicationBuilder builder)
     {
-        next(builder); // Не забываем вызвать следующий модуль
-        
         builder.UseEndpoints(app =>
         {
             app.MapGet("/weatherforecast", () =>
@@ -36,9 +26,8 @@ class Module : IHostingStartup, IStartupFilter
             })
             .WithName("GetWeatherForecast");
         });
-    };
+    }
 }
-
 
 
 

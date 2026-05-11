@@ -6,19 +6,10 @@ using System.Text.Json;
 
 [assembly: HostingStartup(typeof(Module))]
 
-class Module : IHostingStartup, IStartupFilter
-{
-    public void Configure(IWebHostBuilder builder)
+class Module : ModuleBase
+{ 
+    protected override void Configure(IApplicationBuilder builder)
     {
-        builder.ConfigureServices(services =>
-            services
-            .AddSingleton<IStartupFilter>(this)
-        );
-    }
-
-    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => (builder) =>
-    {
-        next(builder);
         builder.UseEndpoints(endpoints =>
         {
             var group = endpoints.MapGroup("/orders")
@@ -60,5 +51,5 @@ class Module : IHostingStartup, IStartupFilter
             })
             .WithName("Unpaid");
         });
-    };
+    }
 }

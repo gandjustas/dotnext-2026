@@ -4,16 +4,14 @@ using Contracts;
 [assembly: HostingStartup(typeof(RemoteRmq.Module))]
 namespace RemoteRmq;
 
-class Module : IHostingStartup
+class Module : ModuleBase
 {
-    public void Configure(IWebHostBuilder builder)
+    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        builder.ConfigureServices((ctx, services) => services
-            .AddTransient<ICalculator,Calculator>()
+        services
+            .AddTransient<ICalculator, Calculator>()
             .AddHostedService<CalculatorBackend>()
-            .AddEasyNetQ(ctx.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson()
-        );
-        
+            .AddEasyNetQ(context.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson();
     }
 }
 public readonly record struct AddRequest(int A, int B);

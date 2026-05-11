@@ -11,4 +11,11 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.5.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../modular-analyzer/modular-analyzer.csproj" 
+                      ReferenceOutputAssembly="false" 
+                      OutputItemType="Analyzer" />
+	  <ProjectReference Include="$(MSBuildThisFileDirectory)../module-base/ModuleBase.csproj"/>
+  </ItemGroup>  
 </Project>

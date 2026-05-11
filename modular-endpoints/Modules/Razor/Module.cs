@@ -1,24 +1,19 @@
 [assembly: HostingStartup(typeof(RazorModule.Module))]
 namespace RazorModule;
 
-class Module : IHostingStartup, IStartupFilter
+class Module : ModuleBase
 {
-    public void Configure(IWebHostBuilder builder)
+    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        builder.ConfigureServices(services =>
-        {
-            services.AddSingleton<IStartupFilter>(this);
-            services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
-        });
+        services.AddSingleton<IStartupFilter>(this);
+        services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
     }
 
-    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => 
-    builder => {
-        next(builder); // Не забываем вызвать следующий модуль
-        
+    protected override void Configure(IApplicationBuilder builder)
+    {
         builder.UseEndpoints(app =>
         {
-            app.MapRazorPages();            
+            app.MapRazorPages();
         });
-    };
+    }
 }

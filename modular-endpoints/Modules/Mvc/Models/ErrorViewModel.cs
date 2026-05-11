@@ -1,6 +1,6 @@
 namespace MvcModule.Models;
 
-public class ErrorViewModel
+class ErrorViewModel
 {
     public string? RequestId { get; set; }
 

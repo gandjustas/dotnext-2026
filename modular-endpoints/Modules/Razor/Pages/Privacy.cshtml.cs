@@ -2,7 +2,7 @@
 
 namespace RazorModule.Pages;
 
-public class PrivacyModel : PageModel
+class PrivacyModel : PageModel
 {
     public void OnGet()
     {

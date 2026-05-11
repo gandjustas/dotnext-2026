@@ -1,8 +1,5 @@
 [assembly:HostingStartup(typeof(Module))]
 
-class Module : IHostingStartup
+class Module : ModuleBase
 {
-    public void Configure(IWebHostBuilder builder)
-    {
-    }
 }

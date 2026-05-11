@@ -2,13 +2,11 @@ using Contracts;
 [assembly: HostingStartup(typeof(Local.Module))]
 namespace Local;
 
-class Module : IHostingStartup
+class Module : ModuleBase
 {
-    public void Configure(IWebHostBuilder builder)
+    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        builder.ConfigureServices((ctx, services) =>
-            services.AddTransient<ICalculator, Calculator>()
-        );
+        services.AddTransient<ICalculator, Calculator>();
     }
 }
 

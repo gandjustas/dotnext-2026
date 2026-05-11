@@ -3,17 +3,15 @@ using Contracts;
 [assembly: HostingStartup(typeof(RemoteGrpc.Module))]
 namespace RemoteGrpc;
 
-class Module : IHostingStartup
+class Module : ModuleBase
 {
-    public void Configure(IWebHostBuilder builder)
+    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        builder.ConfigureServices((ctx, services) =>
-            services
-                .AddTransient<ICalculator, Calculator>()
-                .AddGrpcClient<Grpc.Services.Calcluator.CalcluatorClient>(c => 
-                    c.Address = new("http://grpc")
-                )
-        );
+        services
+            .AddTransient<ICalculator, Calculator>()
+            .AddGrpcClient<Grpc.Services.Calcluator.CalcluatorClient>(c =>
+                c.Address = new("http://grpc")
+            );
     }
 }
 
