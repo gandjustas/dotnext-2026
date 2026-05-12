@@ -9,6 +9,7 @@
     <Project Path="Modules/Razor/RazorModule.csproj" />
   </Folder>
   <Project Path="Host/Host.csproj" />
+  <Project Path="Tests/Tests.csproj" />
   <Folder Name="/Architecture/">
     <Project Path="../modular-analyzer/modular-analyzer.csproj" />
     <Project Path="../module-base/ModuleBase.csproj" />
