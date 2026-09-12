@@ -7,7 +7,4 @@
       <ProjectReference Include="..\Modules\Razor\RazorModule.csproj" />
       <ProjectReference Include="..\Modules\Mvc\MvcModule.csproj" />
     </ItemGroup>
-	<PropertyGroup>
-		<GenerateMvcApplicationPartsAssemblyAttributes>false</GenerateMvcApplicationPartsAssemblyAttributes>
-	</PropertyGroup>
 </Project>

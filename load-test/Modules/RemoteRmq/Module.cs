@@ -1,6 +1,6 @@
 using EasyNetQ;
 using Contracts;
-using Modulith;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(RemoteRmq.Module))]
 namespace RemoteRmq;

@@ -1,5 +1,5 @@
 using Contracts;
-using Modulith;
+using FusionModules;
 [assembly: HostingStartup(typeof(Local.Module))]
 namespace Local;
 

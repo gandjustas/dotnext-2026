@@ -1,5 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <!--
+      Plain Microsoft.NET.Sdk, not Microsoft.NET.Sdk.Web with OutputType=Library: the ASP.NET
+      types a module uses come from the shared framework, which the FusionModules package brings in.
+      The implicit usings the Web SDK contributed are restored by FusionModules.targets.
+
+      AssemblyName is the literal string a topology names in HOSTINGSTARTUPASSEMBLIES, so it is
+      set here instead of following the project file name.
+    -->
+    <AssemblyName>ApiModule</AssemblyName>
   </PropertyGroup>
 </Project>

@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <AssemblyName>RemoteGrpc</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Protobuf Include="..\..\Backend\Grpc\Protos\Calculator.proto" Link="Calculator.proto" GrpcServices="Client" />

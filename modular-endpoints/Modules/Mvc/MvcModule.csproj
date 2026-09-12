@@ -1,5 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <!-- Microsoft.NET.Sdk.Razor, because this module ships .cshtml views that have to be compiled. -->
+    <AssemblyName>MvcModule</AssemblyName>
   </PropertyGroup>
 </Project>

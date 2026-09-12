@@ -1,4 +1,4 @@
-using Modulith;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(RazorModule.Module))]
 namespace RazorModule;

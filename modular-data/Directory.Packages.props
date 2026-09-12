@@ -12,9 +12,9 @@
     of two vendored projects.
   -->
   <ItemGroup>
-    <PackageVersion Include="Modulith" Version="0.0.0-preview.0.10" />
+    <PackageVersion Include="FusionModules" Version="0.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Modulith" />
+    <PackageReference Include="FusionModules" />
   </ItemGroup>
 </Project>

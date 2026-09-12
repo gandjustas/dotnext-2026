@@ -1,6 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <!--
+      Plain Microsoft.NET.Sdk, not Microsoft.NET.Sdk.Web with OutputType=Library: типы ASP.NET
+      модуль берёт из общего фреймворка, который приносит пакет FusionModules, а неявные using
+      Web SDK возвращает FusionModules.targets. Имя сборки — та самая строка, которую топология
+      пишет в HOSTINGSTARTUPASSEMBLIES.
+    -->
+    <AssemblyName>Local</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

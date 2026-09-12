@@ -1,4 +1,4 @@
-using Modulith;
+﻿using FusionModules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -49,9 +49,15 @@ class AppContext(DbContextOptions options, IConfiguration configuration) : DbCon
     {
         base.OnModelCreating(modelBuilder);
 
-        // Реестр активированных модулей, а не AppDomain: AppDomain показывает всё, что
-        // случайно оказалось загружено в процессе, включая сборки, на которые сослались, но
-        // которые ни разу не активировали.
+        // Реестр активированных модулей, а не AppDomain. AppDomain с фильтром по
+        // HostingStartupAttribute даёт тот же ответ, пока процессом владеет один хост, и
+        // перестаёт — как только его делит второй: в сборке интеграционных тестов загружены
+        // модули всех топологий, поэтому каждая соберёт объединение. Ничего не упадёт, просто
+        // таблицы будут не те. Плюс чужие hosting startup (IISIntegration, Application
+        // Insights, browser refresh из dotnet watch) этот атрибут тоже несут.
+        //
+        // Порядок здесь значим: GetLoadedModules сохраняет порядок HOSTINGSTARTUPASSEMBLIES,
+        // поэтому «связывающий модуль идёт последним» — правило, которое можно записать.
         foreach (var assembly in ModuleBase.GetLoadedModules(configuration))
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);

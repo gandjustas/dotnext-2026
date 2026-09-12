@@ -1,7 +1,7 @@
 
 using Customers;
 using Microsoft.EntityFrameworkCore;
-using Modulith;
+using FusionModules;
 
 [assembly:HostingStartup(typeof(Module))]
 
