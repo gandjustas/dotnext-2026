@@ -14,7 +14,9 @@ class Module : ModuleBase
             .AddEasyNetQ(context.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson();
     }
 }
-public readonly record struct AddRequest(int A, int B);
+// Внутренний контракт модуля: обе стороны обмена (Calculator и CalculatorBackend) живут здесь же,
+// наружу тип не отдаётся. Публичным он быть не должен — и анализатор это теперь видит.
+readonly record struct AddRequest(int A, int B);
 
 class Calculator(IRpc rpc) : ICalculator
 {

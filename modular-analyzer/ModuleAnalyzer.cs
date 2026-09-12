@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,14 +9,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 public class ModuleAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor ModuleShouldNotExposePublicMembers = new(
-        id: "MA0001",
+        id: "MOD0001",
         title: "Нарушены обязательные условия сборки",
-        messageFormat: "Сборка не является запускаемой, помечена атрибутом '{0}' и содержит публичный класс '{1}', который не участвует в реализации IEntityTypeConfiguration и не наследует ControllerBase",
+        messageFormat: "Сборка не является запускаемой, помечена атрибутом '{0}' и содержит публичный тип '{1}', который не участвует в реализации IEntityTypeConfiguration и не наследует ControllerBase",
         category: "Design",
         defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true); 
+        isEnabledByDefault: true);
     private static readonly DiagnosticDescriptor ModuleShouldBeDerivedFromBase = new(
-        id: "MA0002",
+        id: "MOD0002",
         title: "Нарушены обязательные условия сборки",
         messageFormat: "Сборка помечена атрибутом '{0}', с указанием типа модуля '{1}', который не наследует '{2}'",
         category: "Design",
@@ -44,34 +43,43 @@ public class ModuleAnalyzer : DiagnosticAnalyzer
             .FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, hostingStartupAttribute));
         if (moduleAttribute is null) return;
 
-        var moduleType = moduleAttribute.ConstructorArguments.Single();
-        var moduleClass = (ITypeSymbol)moduleType.Value;
         var moduleBaseClass = compilation.GetTypeByMetadataName("ModuleBase");
 
-        compilationStartContext.RegisterCompilationEndAction(compilationContext => {
-            if (moduleBaseClass == null || !InheritsFrom(moduleClass, moduleBaseClass))
+        // ConstructorArguments пуст, если атрибут написан с ошибкой: тогда об этом скажет компилятор,
+        // а обращение к Single() уронило бы сам анализатор.
+        if (moduleAttribute.ConstructorArguments.Length == 1 &&
+            moduleAttribute.ConstructorArguments[0].Value is ITypeSymbol moduleClass)
+        {
+            compilationStartContext.RegisterCompilationEndAction(compilationContext =>
             {
-                var diag = Diagnostic.Create(ModuleShouldBeDerivedFromBase,
-                    moduleClass.Locations.FirstOrDefault() ?? Location.None,
-                    hostingStartupAttribute,                    
-                    moduleClass.Name,
-                    moduleBaseClass.Name);
-                compilationContext.ReportDiagnostic(diag);
-            }
-        });
+                // moduleBaseClass == null означает, что на ModuleBase вообще нет ссылки,
+                // то есть унаследоваться от него модуль точно не мог.
+                if (moduleBaseClass is null || !InheritsFrom(moduleClass, moduleBaseClass))
+                {
+                    var diag = Diagnostic.Create(ModuleShouldBeDerivedFromBase,
+                        moduleClass.Locations.FirstOrDefault() ?? Location.None,
+                        hostingStartupAttribute,
+                        moduleClass.Name,
+                        moduleBaseClass?.Name ?? "ModuleBase");
+                    compilationContext.ReportDiagnostic(diag);
+                }
+            });
+        }
 
         if (compilation.GetEntryPoint(compilationStartContext.CancellationToken) is not null) return;
 
         var entityTypes = GetEntityTypeConfigurationEntities(compilation).ToArray();
         var controllerBaseType = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.ControllerBase");
 
-        // Регистрируем проверку каждого публичного класса
+        // Регистрируем проверку каждого публичного типа
         compilationStartContext.RegisterSymbolAction(symbolContext =>
         {
             var classSymbol = (INamedTypeSymbol)symbolContext.Symbol;
 
-            // Интересуют только публичные классы верхнего уровня в этой сборке
-            if (classSymbol.TypeKind != TypeKind.Class ||
+            // Интересуют только публичные типы верхнего уровня в этой сборке.
+            // Проверять один TypeKind.Class недостаточно: public record struct, интерфейс,
+            // перечисление и делегат протекают наружу ровно так же.
+            if (classSymbol.TypeKind is not (TypeKind.Class or TypeKind.Struct or TypeKind.Interface or TypeKind.Enum or TypeKind.Delegate) ||
                 classSymbol.DeclaredAccessibility != Accessibility.Public ||
                 classSymbol.ContainingType != null ||
                 !SymbolEqualityComparer.Default.Equals(classSymbol.ContainingAssembly, compilation.Assembly))
@@ -83,7 +91,7 @@ public class ModuleAnalyzer : DiagnosticAnalyzer
             // Проверка что есть в списке сущностей
             bool isEntityType = entityTypes.Any(t => SymbolEqualityComparer.Default.Equals(classSymbol, t));
 
-            // Если класс не подходит ни под одно из двух условий – выдаём ошибку
+            // Если тип не подходит ни под одно из двух условий – выдаём ошибку
             if (!isEntityType && !inheritsControllerBase)
             {
                 var diag = Diagnostic.Create(ModuleShouldNotExposePublicMembers,
@@ -109,7 +117,7 @@ public class ModuleAnalyzer : DiagnosticAnalyzer
             foreach (var member in ns.GetMembers())
             {
                 if (member is INamespaceSymbol nestedNs) stack.Push(nestedNs);
-                else if (member is INamedTypeSymbol {TypeKind: TypeKind.Class } type)
+                else if (member is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct } type)
                 {
                     foreach (var inteface in type.AllInterfaces)
                     {

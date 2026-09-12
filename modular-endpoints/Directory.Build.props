@@ -6,4 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Анализатор различает хост и тест-проект: у обоих есть точка входа, но тест обязан
+         ссылаться на хост ради WebApplicationFactory<Program>. -->
+    <CompilerVisibleProperty Include="IsTestProject" />
+  </ItemGroup>
 </Project>

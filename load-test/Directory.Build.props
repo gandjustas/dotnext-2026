@@ -4,4 +4,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Анализатор различает хост и тест-проект: у обоих есть точка входа, но тест обязан
+         ссылаться на хост ради WebApplicationFactory<Program>. -->
+    <CompilerVisibleProperty Include="IsTestProject" />
+  </ItemGroup>
 </Project>
