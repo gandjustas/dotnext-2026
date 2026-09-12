@@ -1,4 +1,5 @@
 using Contracts;
+using Modulith;
 
 [assembly: HostingStartup(typeof(RemoteGrpc.Module))]
 namespace RemoteGrpc;

@@ -1,3 +1,5 @@
+using Modulith;
+
 [assembly: HostingStartup(typeof(MvcModule.Module))]
 namespace MvcModule;
 class Module : ModuleBase
@@ -5,7 +7,6 @@ class Module : ModuleBase
     public const string AreaName = nameof(MvcModule);
     protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton<IStartupFilter>(this);
         services.AddControllersWithViews().AddApplicationPart(typeof(Module).Assembly);
     }
 

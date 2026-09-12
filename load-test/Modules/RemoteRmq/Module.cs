@@ -1,5 +1,6 @@
 using EasyNetQ;
 using Contracts;
+using Modulith;
 
 [assembly: HostingStartup(typeof(RemoteRmq.Module))]
 namespace RemoteRmq;
@@ -8,13 +9,19 @@ class Module : ModuleBase
 {
     protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
+        // MOD0008: the responder is deliberately co-located with the caller here. The point of
+        // this module is to measure what a round trip through RabbitMQ costs, so the handler has
+        // to be in the same process — in a real deployment it would be its own topology.
+#pragma warning disable MOD0008
         services
             .AddTransient<ICalculator, Calculator>()
             .AddHostedService<CalculatorBackend>()
             .AddEasyNetQ(context.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson();
+#pragma warning restore MOD0008
     }
 }
-public readonly record struct AddRequest(int A, int B);
+// internal: the RPC request is this module's wire format, not a contract anybody else uses.
+readonly record struct AddRequest(int A, int B);
 
 class Calculator(IRpc rpc) : ICalculator
 {

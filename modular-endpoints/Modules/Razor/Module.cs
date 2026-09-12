@@ -1,3 +1,5 @@
+using Modulith;
+
 [assembly: HostingStartup(typeof(RazorModule.Module))]
 namespace RazorModule;
 
@@ -5,7 +7,6 @@ class Module : ModuleBase
 {
     protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton<IStartupFilter>(this);
         services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
     }
 

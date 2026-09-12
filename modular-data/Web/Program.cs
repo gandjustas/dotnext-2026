@@ -1,4 +1,4 @@
-using System.Reflection;
+using Modulith;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -43,17 +43,16 @@ using (var ctx = scope.ServiceProvider.GetRequiredService<AppContext>())
 app.UseRouting();
 await app.RunAsync();
 
-class AppContext(DbContextOptions options) : DbContext(options) 
+class AppContext(DbContextOptions options, IConfiguration configuration) : DbContext(options) 
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Сканируем все загруженные сборки на наличие атрибута HostingStartup
-        var hostingStartupAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.GetCustomAttributes<HostingStartupAttribute>().Any());
-
-        foreach (var assembly in hostingStartupAssemblies)
+        // Реестр активированных модулей, а не AppDomain: AppDomain показывает всё, что
+        // случайно оказалось загружено в процессе, включая сборки, на которые сослались, но
+        // которые ни разу не активировали.
+        foreach (var assembly in ModuleBase.GetLoadedModules(configuration))
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);
         }

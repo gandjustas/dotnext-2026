@@ -1,3 +1,5 @@
+using Modulith;
+
 
 [assembly: HostingStartup(typeof(ApiModule.Module))]
 namespace ApiModule;

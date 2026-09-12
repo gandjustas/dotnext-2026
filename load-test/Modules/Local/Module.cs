@@ -1,4 +1,5 @@
 using Contracts;
+using Modulith;
 [assembly: HostingStartup(typeof(Local.Module))]
 namespace Local;
 

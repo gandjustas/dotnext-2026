@@ -18,9 +18,5 @@
     <Project Path="Modules/Microservices/Customers/CustomersMicroservice.csproj" />
     <Project Path="Modules/Microservices/Orders/OrdersMicroservice.csproj" />
   </Folder>
-  <Project Path="Web/Web.csproj" />
-  <Folder Name="/Architecture/">
-    <Project Path="../modular-analyzer/modular-analyzer.csproj" />
-    <Project Path="../module-base/ModuleBase.csproj" />
-  </Folder> 
+  <Project Path="Web/Web.csproj" /> 
 </Solution>
