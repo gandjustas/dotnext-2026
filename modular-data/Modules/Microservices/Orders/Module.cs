@@ -1,4 +1,3 @@
-using Customers;
 using Microsoft.EntityFrameworkCore;
 using Orders;
 using System.Collections.Frozen;
@@ -7,7 +6,7 @@ using System.Text.Json;
 [assembly: HostingStartup(typeof(Module))]
 
 class Module : ModuleBase
-{ 
+{
     protected override void Configure(IApplicationBuilder builder)
     {
         builder.UseEndpoints(endpoints =>
@@ -28,7 +27,7 @@ class Module : ModuleBase
                                   };
                 var orders = await ordersQuery.ToListAsync(ct);
                 var customerIds = orders.Select(o => o.CustomerId).Distinct();
-                var customers = await http.GetFromJsonAsync<Customer[]>(
+                var customers = await http.GetFromJsonAsync<CustomerDto[]>(
                     $"http://customers/customers?{string.Join('&', customerIds.Select(i => "id="+i))}",
                     JsonSerializerOptions.Web, ct);
                 var d = customers!.ToFrozenDictionary(c => c.Id);
@@ -47,9 +46,17 @@ class Module : ModuleBase
                         } : null
                     };
                 });
-                       
+
             })
             .WithName("Unpaid");
         });
     }
 }
+
+// Контракт вызова, а не сущность из чужого модуля.
+//
+// Раньше здесь использовался Customers.Customer, и из-за этого сборка модуля ссылалась
+// на Customers.Entities. Ссылка между модулями — это утверждение о деплое: топология
+// orders обязана была бы содержать и модуль Customers.Entities, иначе ModuleBase роняет
+// старт. Ровно это и происходило: docker compose up orders не поднимался.
+record CustomerDto(int Id, string Name, string Email);
