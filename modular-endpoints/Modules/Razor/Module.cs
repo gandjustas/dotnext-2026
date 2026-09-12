@@ -5,7 +5,6 @@ class Module : ModuleBase
 {
     protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton<IStartupFilter>(this);
         services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
     }
 
