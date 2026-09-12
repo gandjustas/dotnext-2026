@@ -9,6 +9,8 @@ services:
       - 5001:8080
     environment:
       ConnectionStrings__Postgres: Server=postgres;Port=5432;Database=modular;User Id=demo;Password=demo;Maximum Pool Size=90
+      # Порядок важен: EF Core применяет конфигурации в порядке активации модулей,
+      # а Monolith дополняет конфигурации, объявленные в Orders.Entities и Customers.Entities.
       HOSTINGSTARTUPASSEMBLIES: Orders.Entities;Customers.Entities;Monolith
     depends_on:
       - postgres
