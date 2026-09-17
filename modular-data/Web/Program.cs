@@ -4,13 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var services = builder.Services;
 services.AddHttpClient();
 services.AddServiceDiscovery();
 services.ConfigureHttpClientDefaults(http =>
 {
-    // Turn on service discovery by default
     http.AddServiceDiscovery();
 });
 

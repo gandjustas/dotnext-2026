@@ -15,6 +15,7 @@ public class ModuleAnalyzer : DiagnosticAnalyzer
         category: "Design",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
     private static readonly DiagnosticDescriptor ModuleShouldBeDerivedFromBase = new(
         id: "MOD0002",
         title: "Нарушены обязательные условия сборки",
@@ -76,9 +77,6 @@ public class ModuleAnalyzer : DiagnosticAnalyzer
         {
             var classSymbol = (INamedTypeSymbol)symbolContext.Symbol;
 
-            // Интересуют только публичные типы верхнего уровня в этой сборке.
-            // Проверять один TypeKind.Class недостаточно: public record struct, интерфейс,
-            // перечисление и делегат протекают наружу ровно так же.
             if (classSymbol.TypeKind is not (TypeKind.Class or TypeKind.Struct or TypeKind.Interface or TypeKind.Enum or TypeKind.Delegate) ||
                 classSymbol.DeclaredAccessibility != Accessibility.Public ||
                 classSymbol.ContainingType != null ||
