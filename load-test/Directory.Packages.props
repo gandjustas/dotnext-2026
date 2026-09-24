@@ -17,7 +17,7 @@
     of two vendored projects.
   -->
   <ItemGroup>
-    <PackageVersion Include="FusionModules" Version="0.1.1" />
+    <PackageVersion Include="FusionModules" Version="0.1.2" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FusionModules" />
