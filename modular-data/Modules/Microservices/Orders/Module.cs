@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Orders;
 using System.Collections.Frozen;
 using System.Text.Json;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(Module))]
 

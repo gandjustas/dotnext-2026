@@ -1,3 +1,4 @@
+using FusionModules;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -20,11 +21,15 @@ public class ModuleRegistryTests
         }
     }
 
+    // Сборка приложения активируется первой и в переменной не указана — она и в списке первая.
+    // Остальные модули друг на друга не ссылаются, поэтому идут по имени, каким бы ни был порядок
+    // в переменной.
     [Test]
     [Arguments("ApiModule", "Host,ApiModule")]
-    [Arguments("MvcModule;ApiModule", "Host,MvcModule,ApiModule")]
-    [Arguments("ApiModule;RazorModule;MvcModule", "Host,ApiModule,RazorModule,MvcModule")]
-    public async Task RegistryReportsActivatedModulesInOrder(string modules, string expected)
+    [Arguments("MvcModule;ApiModule", "Host,ApiModule,MvcModule")]
+    [Arguments("ApiModule;RazorModule;MvcModule", "Host,ApiModule,MvcModule,RazorModule")]
+    [Arguments("RazorModule;MvcModule;ApiModule", "Host,ApiModule,MvcModule,RazorModule")]
+    public async Task RegistryReportsHostFirst_ThenModulesByName(string modules, string expected)
     {
         using var factory = new Factory(modules);
         _ = factory.Server;
@@ -32,7 +37,6 @@ public class ModuleRegistryTests
         var configuration = factory.Services.GetRequiredService<IConfiguration>();
         var loaded = string.Join(',', ModuleBase.GetLoadedModules(configuration).Select(a => a.GetName().Name));
 
-        // Сборка приложения активируется первой и в переменной окружения не указана.
         await Assert.That(loaded).IsEqualTo(expected);
     }
 }

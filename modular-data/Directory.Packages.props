@@ -7,10 +7,15 @@
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.5.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
+  <!--
+    Базовый класс модуля, анализаторы и MSBuild-конвенции — один пакет вместо двух проектов
+    module-base и modular-analyzer. Пакета для EF Core у FusionModules нет и не будет: модель
+    из модулей собирает AppContext сам (Web/Program.cs).
+  -->
   <ItemGroup>
-	  <ProjectReference Include="$(MSBuildThisFileDirectory)../modular-analyzer/modular-analyzer.csproj"
-						ReferenceOutputAssembly="false"
-						OutputItemType="Analyzer" />
-	  <ProjectReference Include="$(MSBuildThisFileDirectory)../module-base/ModuleBase.csproj"/>
-  </ItemGroup>    
+    <PackageVersion Include="FusionModules" Version="0.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FusionModules" />
+  </ItemGroup>
 </Project>

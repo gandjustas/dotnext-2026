@@ -1,13 +1,14 @@
 using Contracts;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(RemoteGrpc.Module))]
 namespace RemoteGrpc;
 
 class Module : ModuleBase
 {
-    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
+    protected override void ConfigureServices(IHostApplicationBuilder builder)
     {
-        services
+        builder.Services
             .AddTransient<ICalculator, Calculator>()
             .AddGrpcClient<Grpc.Services.Calcluator.CalcluatorClient>(c =>
                 c.Address = new("http://grpc")

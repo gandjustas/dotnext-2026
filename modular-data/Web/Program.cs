@@ -1,8 +1,9 @@
+using FusionModules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args).ValidateModules();
 
 var services = builder.Services;
 services.AddHttpClient();
@@ -45,16 +46,20 @@ await app.RunAsync();
 
 class AppContext(DbContextOptions options, IConfiguration configuration) : DbContext(options)
 {
-    // Состав модулей, из которых собрана модель. Входит в ключ кэша модели EF Core.
-    public string ModuleFingerprint { get; } =
-        string.Join(';', ModuleBase.GetLoadedModules(configuration).Select(a => a.GetName().Name));
+    // Модули, которые реально активировались в этом хосте. GetLoadedModules отдаёт каждый модуль
+    // после модулей, на которые ссылается его сборка, а в остальном — по имени: Monolith всегда идёт
+    // после Orders.Entities и Customers.Entities, и порядок в HOSTINGSTARTUPASSEMBLIES на модель не влияет.
+    readonly IReadOnlyList<System.Reflection.Assembly> modules = ModuleBase.GetLoadedModules(configuration);
+
+    // Состав модулей, из которых собрана модель. Входит в ключ кэша модели EF Core; топологии с
+    // одним набором модулей в разном порядке делят одну модель.
+    public string ModuleFingerprint => string.Join(';', modules.Select(a => a.GetName().Name));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Модель собирается из модулей, которые реально активировались, в порядке активации.
-        foreach (var assembly in ModuleBase.GetLoadedModules(configuration))
+        foreach (var assembly in modules)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(assembly);
         }

@@ -5,7 +5,7 @@ using MvcModule.Models;
 namespace MvcModule.Controllers;
 
 [Area(Module.AreaName)]
-public class HomeController : Controller
+class HomeController : Controller
 {
     public IActionResult Index()
     {

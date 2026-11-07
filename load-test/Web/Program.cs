@@ -1,4 +1,4 @@
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args).ValidateModules();
 
 #if DEBUG
 builder.Host.UseDefaultServiceProvider( c =>

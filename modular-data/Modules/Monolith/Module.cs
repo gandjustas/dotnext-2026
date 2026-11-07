@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Customers;
 using Orders;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(Module))]
 

@@ -1,17 +1,18 @@
 using EasyNetQ;
 using Contracts;
+using FusionModules;
 
 [assembly: HostingStartup(typeof(RemoteRmq.Module))]
 namespace RemoteRmq;
 
 class Module : ModuleBase
 {
-    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
+    protected override void ConfigureServices(IHostApplicationBuilder builder)
     {
-        services
+        builder.Services
             .AddTransient<ICalculator, Calculator>()
             .AddHostedService<CalculatorBackend>()
-            .AddEasyNetQ(context.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson();
+            .AddEasyNetQ(builder.Configuration.GetConnectionString("Rabbit")).UseSystemTextJson();
     }
 }
 // Внутренний контракт модуля: обе стороны обмена (Calculator и CalculatorBackend) живут здесь же,

@@ -1,3 +1,4 @@
+using FusionModules;
 
 [assembly: HostingStartup(typeof(Module))]
 

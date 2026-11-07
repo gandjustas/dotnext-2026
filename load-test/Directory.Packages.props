@@ -12,10 +12,14 @@
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
   </ItemGroup>
 
+  <!--
+    Базовый класс модуля, анализаторы и MSBuild-конвенции — один пакет вместо двух проектов
+    module-base и modular-analyzer.
+  -->
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)../modular-analyzer/modular-analyzer.csproj" 
-                      ReferenceOutputAssembly="false" 
-                      OutputItemType="Analyzer" />
-	  <ProjectReference Include="$(MSBuildThisFileDirectory)../module-base/ModuleBase.csproj"/>
-  </ItemGroup>  
+    <PackageVersion Include="FusionModules" Version="0.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FusionModules" />
+  </ItemGroup>
 </Project>

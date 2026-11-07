@@ -1,11 +1,13 @@
+using FusionModules;
+
 [assembly: HostingStartup(typeof(RazorModule.Module))]
 namespace RazorModule;
 
 class Module : ModuleBase
 {
-    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
+    protected override void ConfigureServices(IHostApplicationBuilder builder)
     {
-        services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
+        builder.Services.AddRazorPages().AddApplicationPart(typeof(Module).Assembly);
     }
 
     protected override void Configure(IApplicationBuilder builder)

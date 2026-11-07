@@ -1,12 +1,13 @@
 using Contracts;
+using FusionModules;
 [assembly: HostingStartup(typeof(Local.Module))]
 namespace Local;
 
 class Module : ModuleBase
 {
-    protected override void ConfigureServices(WebHostBuilderContext context, IServiceCollection services)
+    protected override void ConfigureServices(IHostApplicationBuilder builder)
     {
-        services.AddTransient<ICalculator, Calculator>();
+        builder.Services.AddTransient<ICalculator, Calculator>();
     }
 }
 
