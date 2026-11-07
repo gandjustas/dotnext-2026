@@ -31,9 +31,12 @@ if (builder.Environment.IsDevelopment())
 services.AddTransient<DbContext>(sp => sp.GetRequiredService<AppContext>());
 var app = builder.Build();
 
-await using (var scope = app.Services.CreateAsyncScope())
-using (var ctx = scope.ServiceProvider.GetRequiredService<AppContext>())
+// Миграции катит одна реплика; остальные и тесты топологий (им нужна модель, а не база) ставят
+// Database:Migrate=false (в окружении — Database__Migrate).
+if (app.Configuration.GetValue("Database:Migrate", defaultValue: true))
 {
+    await using var scope = app.Services.CreateAsyncScope();
+    using var ctx = scope.ServiceProvider.GetRequiredService<AppContext>();
 #if DEBUG
     Console.WriteLine(ctx.Model.ToDebugString(MetadataDebugStringOptions.LongDefault));
 #endif

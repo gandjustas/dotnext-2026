@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Топологии load-test в процессе теста: какой транспорт собрался и что FusionModules не даёт запустить. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="TUnit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Web\Web.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -19,4 +19,5 @@
     <Project Path="Modules/Microservices/Orders/OrdersMicroservice.csproj" />
   </Folder>
   <Project Path="Web/Web.csproj" />
+  <Project Path="Tests/Tests.csproj" />
 </Solution>
