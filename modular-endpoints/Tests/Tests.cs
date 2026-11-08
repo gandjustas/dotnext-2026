@@ -1,17 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
+using TUnit.AspNetCore;
 
 namespace Tests;
 
-public class ApiTopologyTests
+public class ApiTopologyTests : WebApplicationTest<ApiTopology, Program>
 {
-    [ClassDataSource<ApiTopology>(Shared = SharedType.PerTestSession)]
-    public required ApiTopology WebApplicationFactory { get; init; }
-
     [Test]
     public async Task Test()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/host");
 
@@ -23,7 +21,7 @@ public class ApiTopologyTests
     [Test]
     public async Task WeatherForecastTest()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/weatherforecast");
 
@@ -37,7 +35,7 @@ public class ApiTopologyTests
     [Test]
     public async Task MvcRoutesAreNotServed()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/MvcModule/Home/Index");
 
@@ -47,17 +45,14 @@ public class ApiTopologyTests
     record WeatherForecast(DateOnly Date, int TemperatureC, int TemperatureF, string? Summary);
 }
 
-public class MvcTopologyTests
+public class MvcTopologyTests : WebApplicationTest<MvcTopology, Program>
 {
-    [ClassDataSource<MvcTopology>(Shared = SharedType.PerTestSession)]
-    public required MvcTopology WebApplicationFactory { get; init; }
-
     // Контроллер модуля internal, и находит его AllowInternalControllers. Компиляция об этом
     // ничего не скажет: маршрут либо есть в живом процессе, либо его нет.
     [Test]
     public async Task InternalControllerIsDiscovered()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/MvcModule/Home/Index");
 
@@ -68,7 +63,7 @@ public class MvcTopologyTests
     [Test]
     public async Task InternalViewModelSurvivesTheRoundTrip()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/MvcModule/Home/Error");
 
@@ -77,15 +72,12 @@ public class MvcTopologyTests
     }
 }
 
-public class RazorTopologyTests
+public class RazorTopologyTests : WebApplicationTest<RazorTopology, Program>
 {
-    [ClassDataSource<RazorTopology>(Shared = SharedType.PerTestSession)]
-    public required RazorTopology WebApplicationFactory { get; init; }
-
     [Test]
     public async Task PageIsServed()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/");
 
@@ -98,7 +90,7 @@ public class RazorTopologyTests
     [Test]
     public async Task ModuleScriptIsServedFromItsOwnPrefix()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var page = await client.GetStringAsync("/");
         await Assert.That(page).Contains("_content/RazorModule/js/razormodule");

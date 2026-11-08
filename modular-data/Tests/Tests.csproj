@@ -5,6 +5,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="FusionModules.Testing" />
     <PackageReference Include="TUnit" />
+    <PackageReference Include="TUnit.AspNetCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
   </ItemGroup>
 

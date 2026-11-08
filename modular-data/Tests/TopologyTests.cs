@@ -6,11 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Tests;
 
-// Топология — набор модулей, выбранный тем же способом, что и в docker-compose.yml:
-// HOSTINGSTARTUPASSEMBLIES. Базы нет: модель EF собирается без подключения, строка подключения
-// никуда не ведёт, а миграции на старте выключены — Database:Migrate=false, как у реплик, которые
-// не мигрируют.
-public class TopologyFactory(params string[] modules) : ModularWebApplicationFactory<Program>(modules)
+// Web без модулей и без базы; модули тест называет сам. Модель EF собирается без подключения, строка
+// подключения никуда не ведёт, а миграции на старте выключены — Database:Migrate=false, как у реплик,
+// которые не мигрируют.
+public sealed class NoDatabase() : Topology()
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -18,12 +17,14 @@ public class TopologyFactory(params string[] modules) : ModularWebApplicationFac
             .UseSetting("Database:Migrate", "false");
         base.ConfigureWebHost(builder);
     }
+}
 
+public static class TopologyModel
+{
     /// <summary>Таблицы модели этой топологии: «схема.таблица», и внешние ключи «откуда → куда».</summary>
-    public (string[] Tables, string[] ForeignKeys) Model()
+    public static (string[] Tables, string[] ForeignKeys) Model(this IServiceProvider services)
     {
-        using var scope = Services.CreateScope();
-        var model = scope.ServiceProvider.GetRequiredService<DbContext>().Model;
+        var model = services.ModelInstance();
 
         var tables = model.GetEntityTypes()
             .Select(e => $"{e.GetSchema()}.{e.GetTableName()}")
@@ -40,26 +41,23 @@ public class TopologyFactory(params string[] modules) : ModularWebApplicationFac
     }
 
     /// <summary>Вся модель EF Core текстом: сущности, свойства, ключи, связи и аннотации.</summary>
-    public string ModelDebugView()
-    {
-        using var scope = Services.CreateScope();
-        return scope.ServiceProvider.GetRequiredService<DbContext>().Model.ToDebugString(MetadataDebugStringOptions.LongDefault);
-    }
+    public static string ModelDebugView(this IServiceProvider services) =>
+        services.ModelInstance().ToDebugString(MetadataDebugStringOptions.LongDefault);
 
     /// <summary>Модель EF Core этой топологии — тот самый объект, что лежит в кеше моделей.</summary>
-    public Microsoft.EntityFrameworkCore.Metadata.IModel ModelInstance()
+    public static Microsoft.EntityFrameworkCore.Metadata.IModel ModelInstance(this IServiceProvider services)
     {
-        using var scope = Services.CreateScope();
+        using var scope = services.CreateScope();
         return scope.ServiceProvider.GetRequiredService<DbContext>().Model;
     }
 
     /// <summary>Маршруты топологии: «МЕТОД /шаблон (модуль)».</summary>
-    public string[] Routes() => [.. Services.Routes().Select(route => route.ToString())];
+    public static string[] RouteList(this IServiceProvider services) => [.. services.Routes().Select(route => route.ToString())];
 }
 
 // Три топологии из docker-compose.yml. Модель у каждой своя: монолит связывает заказы с клиентами
 // внешним ключом, микросервисы — каждый со своей таблицей и без чужих.
-public class TopologyTests
+public class TopologyTests : TopologyTest<NoDatabase>
 {
     private static readonly string[] Monolith = ["Orders.Entities", "Customers.Entities", "Monolith"];
     private static readonly string[] Orders = ["Orders.Entities", "OrdersMicroservice"];
@@ -68,9 +66,9 @@ public class TopologyTests
     [Test]
     public async Task Monolith_HasBothTables_AndTheForeignKey()
     {
-        await using var factory = new TopologyFactory(Monolith);
+        var topology = await StartAsync(Monolith);
 
-        var (tables, foreignKeys) = factory.Model();
+        var (tables, foreignKeys) = topology.Services.Model();
 
         await Assert.That(tables).IsEquivalentTo(new[] { "Marketing.Customers", "Sales.Orders" });
         await Assert.That(foreignKeys).IsEquivalentTo(new[] { "Orders → Customers" });
@@ -79,9 +77,9 @@ public class TopologyTests
     [Test]
     public async Task Orders_HasOnlyItsTable()
     {
-        await using var factory = new TopologyFactory(Orders);
+        var topology = await StartAsync(Orders);
 
-        var (tables, foreignKeys) = factory.Model();
+        var (tables, foreignKeys) = topology.Services.Model();
 
         await Assert.That(tables).IsEquivalentTo(new[] { "Sales.Orders" });
         await Assert.That(foreignKeys).IsEmpty();
@@ -90,9 +88,9 @@ public class TopologyTests
     [Test]
     public async Task Customers_HasOnlyItsTable()
     {
-        await using var factory = new TopologyFactory(Customers);
+        var topology = await StartAsync(Customers);
 
-        var (tables, _) = factory.Model();
+        var (tables, _) = topology.Services.Model();
 
         await Assert.That(tables).IsEquivalentTo(new[] { "Marketing.Customers" });
     }
@@ -107,11 +105,11 @@ public class TopologyTests
     [Arguments("Customers.Entities;Monolith;Orders.Entities")]
     public async Task Monolith_InAnyOrder_HasTheSameModel(string modules)
     {
-        await using var canonical = new TopologyFactory(Monolith);
-        await using var reordered = new TopologyFactory(modules.Split(';'));
+        var canonical = await StartAsync(Monolith);
+        var reordered = await StartAsync(modules.Split(';'));
 
-        await Assert.That(reordered.Model().ForeignKeys).IsEquivalentTo(new[] { "Orders → Customers" });
-        await Assert.That(reordered.ModelDebugView()).IsEqualTo(canonical.ModelDebugView());
+        await Assert.That(reordered.Services.Model().ForeignKeys).IsEquivalentTo(new[] { "Orders → Customers" });
+        await Assert.That(reordered.Services.ModelDebugView()).IsEqualTo(canonical.Services.ModelDebugView());
     }
 
     // Ключ кеша модели строится по упорядоченным модулям, поэтому перестановки одного набора — это
@@ -119,10 +117,10 @@ public class TopologyTests
     [Test]
     public async Task Monolith_InAnotherOrder_SharesTheCachedModel()
     {
-        await using var canonical = new TopologyFactory(Monolith);
-        await using var reordered = new TopologyFactory("Monolith", "Customers.Entities", "Orders.Entities");
+        var canonical = await StartAsync(Monolith);
+        var reordered = await StartAsync("Monolith", "Customers.Entities", "Orders.Entities");
 
-        await Assert.That(ReferenceEquals(reordered.ModelInstance(), canonical.ModelInstance())).IsTrue();
+        await Assert.That(ReferenceEquals(reordered.Services.ModelInstance(), canonical.Services.ModelInstance())).IsTrue();
     }
 
     // Как в любой сборке интеграционных тестов: несколько топологий в одном процессе. EF Core кеширует
@@ -131,24 +129,24 @@ public class TopologyTests
     [Test]
     public async Task ThreeTopologiesInOneProcess_EachHasItsOwnModel()
     {
-        await using var monolith = new TopologyFactory(Monolith);
-        await using var orders = new TopologyFactory(Orders);
-        await using var customers = new TopologyFactory(Customers);
+        var monolith = await StartAsync(Monolith);
+        var orders = await StartAsync(Orders);
+        var customers = await StartAsync(Customers);
 
-        await Assert.That(monolith.Model().Tables).IsEquivalentTo(new[] { "Marketing.Customers", "Sales.Orders" });
-        await Assert.That(orders.Model().Tables).IsEquivalentTo(new[] { "Sales.Orders" });
-        await Assert.That(customers.Model().Tables).IsEquivalentTo(new[] { "Marketing.Customers" });
+        await Assert.That(monolith.Services.Model().Tables).IsEquivalentTo(new[] { "Marketing.Customers", "Sales.Orders" });
+        await Assert.That(orders.Services.Model().Tables).IsEquivalentTo(new[] { "Sales.Orders" });
+        await Assert.That(customers.Services.Model().Tables).IsEquivalentTo(new[] { "Marketing.Customers" });
     }
 
     [Test]
     public async Task EachTopology_ServesItsRoutes_AndOnlyThose()
     {
-        await using var monolith = new TopologyFactory(Monolith);
-        await using var orders = new TopologyFactory(Orders);
-        await using var customers = new TopologyFactory(Customers);
+        var monolith = await StartAsync(Monolith);
+        var orders = await StartAsync(Orders);
+        var customers = await StartAsync(Customers);
 
-        await Assert.That(monolith.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid (Monolith)", "POST /seed (Monolith)" });
-        await Assert.That(orders.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid (OrdersMicroservice)" });
-        await Assert.That(customers.Routes()).IsEquivalentTo(new[] { "GET /customers (CustomersMicroservice)" });
+        await Assert.That(monolith.Services.RouteList()).IsEquivalentTo(new[] { "GET /orders/unpaid (Monolith)", "POST /seed (Monolith)" });
+        await Assert.That(orders.Services.RouteList()).IsEquivalentTo(new[] { "GET /orders/unpaid (OrdersMicroservice)" });
+        await Assert.That(customers.Services.RouteList()).IsEquivalentTo(new[] { "GET /customers (CustomersMicroservice)" });
     }
 }

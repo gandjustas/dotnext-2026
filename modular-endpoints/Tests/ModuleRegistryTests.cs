@@ -1,5 +1,4 @@
 using FusionModules;
-using FusionModules.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +8,7 @@ namespace Tests;
 // AppDomain.CurrentDomain.GetAssemblies() начинает врать. В процессе одного хоста он точен, но
 // в тестовом процессе загружены модули всех топологий сразу, поэтому каждая видит объединение.
 // Реестр сообщает только то, что активировалось в этом хосте.
-public class ModuleRegistryTests
+public class ModuleRegistryTests : TopologyTest<NoModulesTopology>
 {
     // Сборка приложения активируется первой и в переменной не указана — она и в списке первая.
     // Остальные модули друг на друга не ссылаются, поэтому идут по имени, каким бы ни был порядок
@@ -21,10 +20,9 @@ public class ModuleRegistryTests
     [Arguments("RazorModule;MvcModule;ApiModule", "Host,ApiModule,MvcModule,RazorModule")]
     public async Task RegistryReportsHostFirst_ThenModulesByName(string modules, string expected)
     {
-        using var factory = new ModularWebApplicationFactory<Program>(modules.Split(';'));
-        _ = factory.Server;
+        var topology = await StartAsync(modules.Split(';'));
 
-        var configuration = factory.Services.GetRequiredService<IConfiguration>();
+        var configuration = topology.Services.GetRequiredService<IConfiguration>();
         var loaded = string.Join(',', ModuleBase.GetLoadedModules(configuration).Select(a => a.GetName().Name));
 
         await Assert.That(loaded).IsEqualTo(expected);

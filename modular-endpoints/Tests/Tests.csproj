@@ -4,6 +4,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="FusionModules.Testing" />
     <PackageReference Include="TUnit" />
+    <PackageReference Include="TUnit.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ namespace Tests;
 // Четыре топологии из docker-compose.yml — один и тот же Web, разный транспорт до калькулятора.
 // Сборка про топологии не знает ничего: какой модуль загружен, решает переменная окружения, поэтому
 // и проверяется живой процесс.
-public class TopologyTests
+public class TopologyTests : TopologyTest<NoTransport>
 {
     public static IEnumerable<Func<string>> Transports() =>
         new[] { "Local", "RemoteRest", "RemoteGrpc", "RemoteRmq" }.Select(module => (Func<string>)(() => module));
@@ -18,9 +18,9 @@ public class TopologyTests
     [MethodDataSource(nameof(Transports))]
     public async Task EachTopology_HasACalculator(string module)
     {
-        await using var factory = new TopologyFactory(module);
+        var topology = await StartAsync(module);
 
-        var isService = factory.Services.GetRequiredService<IServiceProviderIsService>();
+        var isService = topology.Services.GetRequiredService<IServiceProviderIsService>();
 
         await Assert.That(isService.IsService(typeof(ICalculator))).IsTrue();
     }
@@ -33,8 +33,8 @@ public class TopologyTests
     [Arguments("RemoteGrpc")]
     public async Task TheCalculator_ComesFromTheTopologysModule(string module)
     {
-        await using var factory = new TopologyFactory(module);
-        await using var scope = factory.Services.CreateAsyncScope();
+        var topology = await StartAsync(module);
+        await using var scope = topology.Services.CreateAsyncScope();
 
         var calculator = scope.ServiceProvider.GetRequiredService<ICalculator>();
 
@@ -45,8 +45,8 @@ public class TopologyTests
     [Test]
     public async Task Local_AddsInProcess()
     {
-        await using var factory = new TopologyFactory("Local");
-        using var client = factory.CreateClient();
+        var topology = await StartAsync("Local");
+        using var client = topology.CreateClient();
 
         var sum = await client.GetStringAsync("/test?a=2&b=3");
 
@@ -56,9 +56,9 @@ public class TopologyTests
     [Test]
     public async Task WithoutATransport_ThereIsNoCalculator()
     {
-        await using var factory = new TopologyFactory();
+        var topology = await StartAsync();
 
-        var isService = factory.Services.GetRequiredService<IServiceProviderIsService>();
+        var isService = topology.Services.GetRequiredService<IServiceProviderIsService>();
 
         await Assert.That(isService.IsService(typeof(ICalculator))).IsFalse();
     }
@@ -73,9 +73,7 @@ public class TopologyTests
     [Arguments("RemoteGrpc;Local")]
     public async Task TwoTransportsInOneProcess_DoNotStart(string modules)
     {
-        await using var factory = new TopologyFactory(modules.Split(';'));
-
-        var failure = await Assert.That(() => factory.Services).Throws<InvalidOperationException>();
+        var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => StartAsync(modules.Split(';')));
 
         await Assert.That(failure!.Message).Contains("Contracts.ICalculator");
         await Assert.That(failure.Message).Contains("Local: Local.Calculator");
@@ -90,9 +88,7 @@ public class TopologyTests
     [Test]
     public async Task AMisspelledModule_DoesNotStart()
     {
-        await using var factory = new TopologyFactory("Local", "RemoteGprc");
-
-        var failure = await Assert.That(() => factory.Services).Throws<InvalidOperationException>();
+        var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => StartAsync("Local", "RemoteGprc"));
 
         await Assert.That(failure!.Message).Contains("RemoteGprc");
     }

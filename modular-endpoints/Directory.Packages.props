@@ -1,8 +1,9 @@
 <Project>
     <ItemGroup>
         <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
-        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
-        <PackageVersion Include="TUnit" Version="1.44.0" />
+        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
+        <PackageVersion Include="TUnit" Version="1.81.10" />
+        <PackageVersion Include="TUnit.AspNetCore" Version="1.81.10" />
     </ItemGroup>
     <!--
         Базовый класс модуля, анализаторы и MSBuild-конвенции — один пакет вместо двух проектов
@@ -10,7 +11,7 @@
     -->
     <ItemGroup>
         <PackageVersion Include="FusionModules" Version="0.3.0" />
-        <!-- тестам: WebApplicationFactory по набору модулей -->
+        <!-- тестам: настройка хоста топологии и маршруты по модулям; фабрика — TUnit.AspNetCore -->
         <PackageVersion Include="FusionModules.Testing" Version="0.3.0" />
     </ItemGroup>
     <ItemGroup>

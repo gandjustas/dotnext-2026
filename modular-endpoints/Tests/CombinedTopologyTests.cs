@@ -1,13 +1,11 @@
 using System.Net;
 using FusionModules.Testing;
+using TUnit.AspNetCore;
 
 namespace Tests;
 
-public class AllModulesTopologyTests
+public class AllModulesTopologyTests : WebApplicationTest<AllModulesTopology, Program>
 {
-    [ClassDataSource<AllModulesTopology>(Shared = SharedType.PerTestSession)]
-    public required AllModulesTopology WebApplicationFactory { get; init; }
-
     // Монолит отдаёт всё, что отдавали топологии по одному модулю: маршруты модулей не мешают друг
     // другу, а проверки FusionModules при старте прошли — иначе фабрика не поднялась бы.
     [Test]
@@ -17,7 +15,7 @@ public class AllModulesTopologyTests
     [Arguments("/")]
     public async Task EveryModulesRoute_IsServed(string path)
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync(path);
 
@@ -31,7 +29,7 @@ public class AllModulesTopologyTests
     [Test]
     public async Task EachModule_ServesItsOwnRoutes()
     {
-        var routes = WebApplicationFactory.Services.Routes().Select(route => route.ToString());
+        var routes = Services.Routes().Select(route => route.ToString());
 
         await Assert.That(routes).IsEquivalentTo(new[]
         {
@@ -47,15 +45,12 @@ public class AllModulesTopologyTests
     }
 }
 
-public class NoModulesTopologyTests
+public class NoModulesTopologyTests : WebApplicationTest<NoModulesTopology, Program>
 {
-    [ClassDataSource<NoModulesTopology>(Shared = SharedType.PerTestSession)]
-    public required NoModulesTopology WebApplicationFactory { get; init; }
-
     [Test]
     public async Task OnlyTheHostsOwnRoute_IsServed()
     {
-        var client = WebApplicationFactory.CreateClient();
+        var client = Factory.CreateClient();
 
         await Assert.That(await client.GetStringAsync("/host")).IsEqualTo("Hello from Host!");
 
@@ -67,16 +62,14 @@ public class NoModulesTopologyTests
     }
 }
 
-public class MisspelledTopologyTests
+public class MisspelledTopologyTests : TopologyTest<NoModulesTopology>
 {
     // Опечатка в HOSTINGSTARTUPASSEMBLIES без FusionModules — процесс, который стартует, проходит пробу и
     // отвечает 404 на маршруты модуля. Здесь он не стартует и называет имя, которого не нашёл.
     [Test]
     public async Task AMisspelledModule_DoesNotStart()
     {
-        await using var factory = new Topology("ApiModule", "MvcModul");
-
-        var failure = await Assert.That(() => factory.Services).Throws<InvalidOperationException>();
+        var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => StartAsync("ApiModule", "MvcModul"));
 
         await Assert.That(failure!.Message).Contains("MvcModul");
     }
