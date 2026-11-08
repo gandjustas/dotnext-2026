@@ -17,12 +17,16 @@
 **`main`** — код в том виде, в каком он был на докладе: базовый класс `module-base/` и анализатор
 `modular-analyzer/` лежат в репозитории проектами, на которые ссылаются все три демо.
 
-**`fusionmodules`** (эта ветка) — то же самое на пакете
+**`fusionmodules`** — то же самое на пакете
 [FusionModules](https://www.nuget.org/packages/FusionModules)
 ([исходники](https://github.com/gandjustas/FusionModules)) версии 0.3.0: базовый класс, анализаторы и
 MSBuild-конвенции приходят одной `PackageReference`, а с ними — проверки топологии при старте и MOD0014
 при сборке, модель EF Core из модулей пакетом `FusionModules.EntityFrameworkCore`, тесты топологий на
 `FusionModules.Testing`.
+
+**`fusionmodules-v0.3-tunit`** (эта ветка) — `fusionmodules`, в которой тесты топологий подняты на
+[TUnit.AspNetCore](https://tunit.dev/docs/examples/aspnet): фабрика `TestWebApplicationFactory` и базовые
+классы тестов TUnit вместо `ModularWebApplicationFactory`, TUnit 1.81.10.
 
 ## Как устроено на FusionModules
 
@@ -77,7 +81,7 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
   `fusion_modules_allowed_service_collisions`: четыре транспорта — альтернативы (см.
   [«Проверки топологии»](#проверки-топологии)).
 - `modular-data` собирает модель пакетом `FusionModules.EntityFrameworkCore`, тесты всех трёх демо —
-  на `FusionModules.Testing`.
+  на TUnit.AspNetCore с расширениями `FusionModules.Testing`.
 
 Попутно исправлено то, что не связано с пакетом:
 
@@ -190,8 +194,8 @@ Customers.Entities, Orders.Entities)
 
 **`FusionModules.EntityFrameworkCore`** — модель из модулей в `modular-data` (см. выше).
 
-**`FusionModules.Testing`** — `ModularWebApplicationFactory<Program>` в трёх тестовых проектах: тест
-называет модули, а `HOSTINGSTARTUPASSEMBLIES` выставляет пакет. `UseConnectionStrings(("Postgres", "Host=127.0.0.1;Port=1;…"))` —
+**`FusionModules.Testing`** — расширения для хоста топологии; фабрика в этой ветке своя, на TUnit (см.
+[«Тесты»](#тесты)). `UseConnectionStrings(("Postgres", "Host=127.0.0.1;Port=1;…"))` —
 строки подключения, которые разбираются, но никуда не ведут (для RabbitMQ в `load-test` —
 `host=127.0.0.1;port=1`); `Database:Migrate=false` тесты `modular-data` ставят сами, это ключ
 приложения; `WithoutApplicationHostedServices()` снимает фоновые сервисы модулей;
@@ -209,7 +213,16 @@ Customers.Entities, Orders.Entities)
 | `modular-data` | таблицы, схемы и внешние ключи каждой топологии; три топологии в одном процессе — каждая со своей моделью; монолит в любом порядке модулей — та же модель и тот же объект в кеше; маршруты каждой топологии и только они |
 | `modular-endpoints` | топология на каждый модуль (internal-контроллер найден, скрипт `RazorModule` отдаётся из `_content`, чужих маршрутов нет), монолит со всеми модулями и какой модуль какие маршруты в нём отдаёт, топология без модулей, опечатка в имени модуля, порядок модулей в реестре не зависит от переменной |
 
-Тесты поднимают хост через `ModularWebApplicationFactory<Program>` из `FusionModules.Testing`.
+Хост поднимает `TestWebApplicationFactory<Program>` из TUnit.AspNetCore: у каждого теста свой хост, логи
+хоста (и строка `Topology:`) попадают в вывод теста, а клиенты несут `traceparent` теста. Модули
+выбирает `Topology` в `Tests/Topology.cs` каждого демо — ключом `HOSTINGSTARTUPASSEMBLIES` в стартовой
+конфигурации, а при `ASPNETCORE_HOSTINGSTARTUPASSEMBLIES` в окружении теста отказывается стартовать.
+
+- Топология, общая для класса тестов (`modular-endpoints`), — тип фабрики: `ApiTopology`,
+  `AllModulesTopology` и так далее, класс тестов наследует `WebApplicationTest<ApiTopology, Program>`.
+- Топология из аргументов теста — `TopologyTest<TFactory>.StartAsync("Local")`: хост поднимается
+  внутри теста, поэтому отказ стартовать (опечатка в имени модуля, два транспорта) — обычное
+  исключение, которое тест проверяет. Так написаны тесты `load-test` и `modular-data`.
 
 ## Сборка
 
