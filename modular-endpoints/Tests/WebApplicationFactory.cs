@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using FusionModules.Testing;
 using TUnit.Core.Interfaces;
 
 namespace Tests;
 
 // Топология — это набор модулей, и тест выбирает его тем же способом, что и деплой:
-// HOSTINGSTARTUPASSEMBLIES. Поэтому тестовая топология и продовая — одно и то же.
-public class ModularWebApplicationFactory(params string[] modules)
-    : WebApplicationFactory<Program>, IAsyncInitializer
+// HOSTINGSTARTUPASSEMBLIES. Поэтому тестовая топология и продовая — одно и то же. Хост поднимается
+// заранее (IAsyncInitializer), чтобы ClassDataSource делил его между тестами одной топологии.
+public class Topology(params string[] modules) : ModularWebApplicationFactory<Program>(modules), IAsyncInitializer
 {
     public Task InitializeAsync()
     {
@@ -15,23 +14,17 @@ public class ModularWebApplicationFactory(params string[] modules)
 
         return Task.CompletedTask;
     }
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseSetting(WebHostDefaults.HostingStartupAssembliesKey, string.Join(';', modules));
-        base.ConfigureWebHost(builder);
-    }
 }
 
-public sealed class ApiTopology() : ModularWebApplicationFactory("ApiModule");
+public sealed class ApiTopology() : Topology("ApiModule");
 
-public sealed class MvcTopology() : ModularWebApplicationFactory("MvcModule");
+public sealed class MvcTopology() : Topology("MvcModule");
 
-public sealed class RazorTopology() : ModularWebApplicationFactory("RazorModule");
+public sealed class RazorTopology() : Topology("RazorModule");
 
 // Монолит: все модули в одном процессе. ValidateModules в Program.cs проверяет при старте, что каждый
 // названный модуль загрузился и его стартап отработал.
-public sealed class AllModulesTopology() : ModularWebApplicationFactory("ApiModule", "MvcModule", "RazorModule");
+public sealed class AllModulesTopology() : Topology("ApiModule", "MvcModule", "RazorModule");
 
 // Ни одного модуля: только то, что хост делает сам (его собственный модуль активируется всегда).
-public sealed class NoModulesTopology() : ModularWebApplicationFactory();
+public sealed class NoModulesTopology() : Topology();

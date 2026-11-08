@@ -18,6 +18,8 @@
   -->
   <ItemGroup>
     <PackageVersion Include="FusionModules" Version="0.3.0" />
+    <!-- тестам: WebApplicationFactory по набору модулей -->
+    <PackageVersion Include="FusionModules.Testing" Version="0.3.0" />
     <PackageVersion Include="FusionModules.EntityFrameworkCore" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>

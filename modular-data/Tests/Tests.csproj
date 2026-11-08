@@ -3,6 +3,7 @@
   <!-- Топологии modular-data в процессе теста: модель EF и маршруты каждой. Без базы. -->
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="FusionModules.Testing" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
   </ItemGroup>

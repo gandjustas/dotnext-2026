@@ -1,4 +1,5 @@
 using System.Net;
+using FusionModules.Testing;
 
 namespace Tests;
 
@@ -21,6 +22,28 @@ public class AllModulesTopologyTests
         var response = await client.GetAsync(path);
 
         response.EnsureSuccessStatusCode();
+    }
+
+    // Кто что отдаёт в монолите — по таблице эндпоинтов, а не пробами по HTTP. Статику
+    // (MapStaticAssets, больше пятисот маршрутов с хешами в именах) Routes() не показывает. Маршруты
+    // самого приложения — «host», хотя Host и сам модуль. У /openapi владельца нет: делегат объявлен в
+    // библиотеке, а не в модуле или хосте.
+    [Test]
+    public async Task EachModule_ServesItsOwnRoutes()
+    {
+        var routes = WebApplicationFactory.Services.Routes().Select(route => route.ToString());
+
+        await Assert.That(routes).IsEquivalentTo(new[]
+        {
+            "GET /host (host)",
+            "GET /openapi/{documentName}.json",
+            "GET /weatherforecast (ApiModule)",
+            "* /{area:exists}/{controller=Home}/{action=Index}/{id?} (MvcModule)",
+            "* / (RazorModule)",
+            "* /Index (RazorModule)",
+            "* /Privacy (RazorModule)",
+            "* /Error (RazorModule)",
+        });
     }
 }
 
@@ -51,7 +74,7 @@ public class MisspelledTopologyTests
     [Test]
     public async Task AMisspelledModule_DoesNotStart()
     {
-        await using var factory = new ModularWebApplicationFactory("ApiModule", "MvcModul");
+        await using var factory = new Topology("ApiModule", "MvcModul");
 
         var failure = await Assert.That(() => factory.Services).Throws<InvalidOperationException>();
 

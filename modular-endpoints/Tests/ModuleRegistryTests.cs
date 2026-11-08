@@ -1,6 +1,5 @@
 using FusionModules;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using FusionModules.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,15 +11,6 @@ namespace Tests;
 // Реестр сообщает только то, что активировалось в этом хосте.
 public class ModuleRegistryTests
 {
-    sealed class Factory(string modules) : WebApplicationFactory<Program>
-    {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            builder.UseSetting(WebHostDefaults.HostingStartupAssembliesKey, modules);
-            base.ConfigureWebHost(builder);
-        }
-    }
-
     // Сборка приложения активируется первой и в переменной не указана — она и в списке первая.
     // Остальные модули друг на друга не ссылаются, поэтому идут по имени, каким бы ни был порядок
     // в переменной.
@@ -31,7 +21,7 @@ public class ModuleRegistryTests
     [Arguments("RazorModule;MvcModule;ApiModule", "Host,ApiModule,MvcModule,RazorModule")]
     public async Task RegistryReportsHostFirst_ThenModulesByName(string modules, string expected)
     {
-        using var factory = new Factory(modules);
+        using var factory = new ModularWebApplicationFactory<Program>(modules.Split(';'));
         _ = factory.Server;
 
         var configuration = factory.Services.GetRequiredService<IConfiguration>();

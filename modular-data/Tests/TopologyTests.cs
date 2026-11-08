@@ -1,6 +1,5 @@
+using FusionModules.Testing;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,15 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Tests;
 
 // Топология — набор модулей, выбранный тем же способом, что и в docker-compose.yml:
-// HOSTINGSTARTUPASSEMBLIES. Базы нет: модель EF собирается без подключения, а миграции на старте
-// выключены (Database:Migrate=false, как у реплик, которые не мигрируют).
-public class TopologyFactory(params string[] modules) : WebApplicationFactory<Program>
+// HOSTINGSTARTUPASSEMBLIES. Базы нет: модель EF собирается без подключения, строка подключения
+// никуда не ведёт, а миграции на старте выключены — Database:Migrate=false, как у реплик, которые
+// не мигрируют.
+public class TopologyFactory(params string[] modules) : ModularWebApplicationFactory<Program>(modules)
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseSetting(WebHostDefaults.HostingStartupAssembliesKey, string.Join(';', modules));
-        builder.UseSetting("ConnectionStrings:Postgres", "Host=127.0.0.1;Port=1;Database=topology;Username=t;Password=t");
-        builder.UseSetting("Database:Migrate", "false");
+        builder.UseConnectionStrings(("Postgres", "Host=127.0.0.1;Port=1;Database=unused;Username=unused;Password=unused"))
+            .UseSetting("Database:Migrate", "false");
+        base.ConfigureWebHost(builder);
     }
 
     /// <summary>Таблицы модели этой топологии: «схема.таблица», и внешние ключи «откуда → куда».</summary>
@@ -53,14 +53,8 @@ public class TopologyFactory(params string[] modules) : WebApplicationFactory<Pr
         return scope.ServiceProvider.GetRequiredService<DbContext>().Model;
     }
 
-    /// <summary>Маршруты топологии: «МЕТОД /шаблон».</summary>
-    public string[] Routes() =>
-        Services.GetRequiredService<EndpointDataSource>().Endpoints
-            .OfType<RouteEndpoint>()
-            .SelectMany(e => (e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["*"])
-                .Select(method => $"{method} /{e.RoutePattern.RawText?.TrimStart('/')}"))
-            .Order(StringComparer.Ordinal)
-            .ToArray();
+    /// <summary>Маршруты топологии: «МЕТОД /шаблон (модуль)».</summary>
+    public string[] Routes() => [.. Services.Routes().Select(route => route.ToString())];
 }
 
 // Три топологии из docker-compose.yml. Модель у каждой своя: монолит связывает заказы с клиентами
@@ -153,8 +147,8 @@ public class TopologyTests
         await using var orders = new TopologyFactory(Orders);
         await using var customers = new TopologyFactory(Customers);
 
-        await Assert.That(monolith.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid", "POST /seed" });
-        await Assert.That(orders.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid" });
-        await Assert.That(customers.Routes()).IsEquivalentTo(new[] { "GET /customers" });
+        await Assert.That(monolith.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid (Monolith)", "POST /seed (Monolith)" });
+        await Assert.That(orders.Routes()).IsEquivalentTo(new[] { "GET /orders/unpaid (OrdersMicroservice)" });
+        await Assert.That(customers.Routes()).IsEquivalentTo(new[] { "GET /customers (CustomersMicroservice)" });
     }
 }
