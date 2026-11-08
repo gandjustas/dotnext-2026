@@ -64,20 +64,25 @@ public class TopologyTests
     }
 
     // Транспорты — альтернативы, и в одном процессе их не грузит ни одна топология из
-    // docker-compose.yml. Если загрузить два, процесс стартует, а контроллер получит калькулятор того
-    // модуля, что назван последним: последняя регистрация ICalculator выигрывает. FusionModules 0.2
-    // такое не ловит ни при сборке, ни при старте, поэтому тест фиксирует, что происходит на деле.
+    // docker-compose.yml. Без проверки FusionModules топология с двумя транспортами стартовала бы, и
+    // контроллер получил бы калькулятор того модуля, что назван последним. С ней старт падает и называет
+    // сервис и оба модуля — в любом порядке. Разрешение для MOD0014 в Web.csproj не разрешает грузить
+    // транспорты вместе, а говорит, что они альтернативы, — и ошибка старта так и говорит: грузите один.
     [Test]
-    [Arguments("Local;RemoteGrpc", "RemoteGrpc")]
-    [Arguments("RemoteGrpc;Local", "Local")]
-    public async Task TwoTransportsInOneProcess_TheLastOneWins(string modules, string winner)
+    [Arguments("Local;RemoteGrpc")]
+    [Arguments("RemoteGrpc;Local")]
+    public async Task TwoTransportsInOneProcess_DoNotStart(string modules)
     {
         await using var factory = new TopologyFactory(modules.Split(';'));
-        await using var scope = factory.Services.CreateAsyncScope();
 
-        var calculator = scope.ServiceProvider.GetRequiredService<ICalculator>();
+        var failure = await Assert.That(() => factory.Services).Throws<InvalidOperationException>();
 
-        await Assert.That(calculator.GetType().Assembly.GetName().Name).IsEqualTo(winner);
+        await Assert.That(failure!.Message).Contains("Contracts.ICalculator");
+        await Assert.That(failure.Message).Contains("Local: Local.Calculator");
+        await Assert.That(failure.Message).Contains("RemoteGrpc: RemoteGrpc.Calculator");
+        await Assert.That(failure.Message).Contains("implemented by alternative modules");
+        await Assert.That(failure.Message).Contains("load only one of Local, RemoteGrpc in a topology");
+        await Assert.That(failure.Message).Contains("remove the others from HOSTINGSTARTUPASSEMBLIES");
     }
 
     // Опечатка в HOSTINGSTARTUPASSEMBLIES — без FusionModules это процесс, который стартует, проходит

@@ -7,6 +7,17 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
+  <!--
+    Все четыре транспорта регистрируют ICalculator — намеренно: это четыре реализации одного ребра
+    Web → калькулятор, и ни одна топология из docker-compose.yml не грузит два сразу. Сборка этого
+    знать не может, поэтому MOD0014 сказано здесь. Топологию, которая всё-таки назовёт два транспорта,
+    остановит проверка при старте, и ValidateModules(), сгенерированный из этого списка, назовёт их
+    альтернативами.
+  -->
+  <PropertyGroup>
+    <fusion_modules_allowed_service_collisions>Contracts.ICalculator</fusion_modules_allowed_service_collisions>
+  </PropertyGroup>
+
 
 
   <ItemGroup>

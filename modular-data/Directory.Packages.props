@@ -17,7 +17,7 @@
     из модулей собирает AppContext сам (Web/Program.cs).
   -->
   <ItemGroup>
-    <PackageVersion Include="FusionModules" Version="0.2.0" />
+    <PackageVersion Include="FusionModules" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FusionModules" />
