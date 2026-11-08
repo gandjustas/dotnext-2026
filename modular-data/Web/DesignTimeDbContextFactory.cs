@@ -1,7 +1,7 @@
 using FusionModules;
+using FusionModules.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 // dotnet ef поднимает хост приложения и честно активирует модули из HOSTINGSTARTUPASSEMBLIES.
 // Ровно в этом и проблема: без фабрики состав миграции определяется переменной окружения той
@@ -14,8 +14,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 //
 // Имена — из KnownModules, который FusionModules генерирует из ссылок этого проекта: список,
 // написанный руками, — копия csproj, которую никто не сверяет. От KnownModules нужен только набор:
-// порядок, в котором AppContext применяет конфигурации, строит GetLoadedModules по ссылкам
-// загруженных сборок — так же, как в рантайме.
+// порядок, в котором применяются конфигурации, UseModules строит так же, как в рантайме, — по
+// ссылкам загруженных сборок.
 class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppContext>
 {
     public AppContext CreateDbContext(string[] args)
@@ -23,14 +23,13 @@ class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppContext>
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true)
             .AddEnvironmentVariables()
-            .AddInMemoryCollection(ModuleBase.CreateModuleRegistry(KnownModules.Names))
             .Build();
 
         var options = new DbContextOptionsBuilder<AppContext>()
             .UseNpgsql(configuration.GetConnectionString("Postgres"))
-            .ReplaceService<IModelCacheKeyFactory, ModuleAwareModelCacheKeyFactory>()
+            .UseModules(KnownModules.Names)
             .Options;
 
-        return new AppContext(options, configuration);
+        return new AppContext(options);
     }
 }

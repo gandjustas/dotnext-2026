@@ -1,4 +1,4 @@
-using FusionModules;
+using FusionModules.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -18,7 +18,8 @@ builder.Services.AddDbContext<AppContext>(b =>
      // Топология с частью модулей имеет модель меньше снэпшота миграций — это законно.
      // Понижаем до лога, а не подавляем: на полной модели предупреждение по-прежнему что-то значит.
      .ConfigureWarnings(o => o.Log(RelationalEventId.PendingModelChangesWarning))
-     .ReplaceService<IModelCacheKeyFactory, ModuleAwareModelCacheKeyFactory>()
+     // Модули, которые активировал этот хост, — в опциях контекста; по ним же ключ кеша модели.
+     .UseModules(builder.Configuration)
 );
 
 if (builder.Environment.IsDevelopment())
@@ -47,35 +48,16 @@ if (app.Configuration.GetValue("Database:Migrate", defaultValue: true))
 app.UseRouting();
 await app.RunAsync();
 
-class AppContext(DbContextOptions options, IConfiguration configuration) : DbContext(options)
+// Модель — из конфигураций модулей, которые активировал хост (ModuleBase.GetLoadedModules): каждый
+// модуль после модулей, на которые ссылается его сборка, остальные по имени. Поэтому Monolith с его
+// внешним ключом применяется после Orders.Entities и Customers.Entities, в каком бы порядке их ни
+// назвал HOSTINGSTARTUPASSEMBLIES.
+//
+// Модули берутся из реестра этого хоста, а не из AppDomain: в сборке интеграционных тестов загружены
+// модули всех топологий сразу. И модель кешируется по набору модулей, а не только по типу контекста —
+// иначе вторая топология в процессе молча получила бы модель первой. Это делает UseModules.
+class AppContext(DbContextOptions<AppContext> options) : DbContext(options)
 {
-    // Модули, которые реально активировались в этом хосте. GetLoadedModules отдаёт каждый модуль
-    // после модулей, на которые ссылается его сборка, а в остальном — по имени: Monolith всегда идёт
-    // после Orders.Entities и Customers.Entities, и порядок в HOSTINGSTARTUPASSEMBLIES на модель не влияет.
-    readonly IReadOnlyList<System.Reflection.Assembly> modules = ModuleBase.GetLoadedModules(configuration);
-
-    // Состав модулей, из которых собрана модель. Входит в ключ кэша модели EF Core; топологии с
-    // одним набором модулей в разном порядке делят одну модель.
-    public string ModuleFingerprint => string.Join(';', modules.Select(a => a.GetName().Name));
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        foreach (var assembly in modules)
-        {
-            modelBuilder.ApplyConfigurationsFromAssembly(assembly);
-        }
-    }
-}
-
-// EF Core кэширует построенную модель по типу контекста, во внутреннем сервис-провайдере,
-// общем для всех контекстов с одинаковыми опциями. Два хоста с разными наборами модулей
-// в одном процессе — то есть любая сборка интеграционных тестов — иначе молча делят
-// модель первого: ничего не падает, просто не те таблицы.
-class ModuleAwareModelCacheKeyFactory : IModelCacheKeyFactory
-{
-    public object Create(DbContext context, bool designTime) => context is AppContext app
-        ? (typeof(AppContext), app.ModuleFingerprint, designTime)
-        : (object)(context.GetType(), designTime);
+    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+        modelBuilder.ApplyModuleConfigurations(this);
 }

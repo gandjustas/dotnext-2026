@@ -13,11 +13,12 @@
   </ItemGroup>
   <!--
     Базовый класс модуля, анализаторы и MSBuild-конвенции — один пакет вместо двух проектов
-    module-base и modular-analyzer. Пакета для EF Core у FusionModules нет и не будет: модель
-    из модулей собирает AppContext сам (Web/Program.cs).
+    module-base и modular-analyzer. FusionModules.EntityFrameworkCore собирает модель AppContext
+    из загруженных модулей и кеширует её по набору модулей (Web/Program.cs).
   -->
   <ItemGroup>
     <PackageVersion Include="FusionModules" Version="0.3.0" />
+    <PackageVersion Include="FusionModules.EntityFrameworkCore" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FusionModules" />
