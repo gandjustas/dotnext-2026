@@ -19,10 +19,12 @@
 
 **`fusionmodules`** (эта ветка) — то же самое на пакете
 [FusionModules](https://www.nuget.org/packages/FusionModules)
-([исходники](https://github.com/gandjustas/FusionModules)) версии 0.2: базовый класс, анализаторы и
-MSBuild-конвенции приходят одной `PackageReference`.
+([исходники](https://github.com/gandjustas/FusionModules)) версии 0.3.0: базовый класс, анализаторы и
+MSBuild-конвенции приходят одной `PackageReference`, а с ними — проверки топологии при старте и MOD0014
+при сборке, модель EF Core из модулей пакетом `FusionModules.EntityFrameworkCore`, тесты топологий на
+`FusionModules.Testing`.
 
-## Как устроено на FusionModules 0.2
+## Как устроено на FusionModules
 
 Модуль:
 
@@ -60,7 +62,7 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
   анализаторы ASP.NET Core (ASP0000, MVC1000–MVC1006), которые приносил Web SDK, возвращает
   `FusionModules.targets`.
 - `ConfigureServices(IHostApplicationBuilder)` вместо
-  `ConfigureServices(WebHostBuilderContext, IServiceCollection)`, которая в 0.2 устарела (CS0672).
+  `ConfigureServices(WebHostBuilderContext, IServiceCollection)`, которая в пакете устарела (CS0672).
 - `Host.csproj` в `modular-endpoints` больше не выключает `GenerateMvcApplicationPartsAssemblyAttributes`
   сам — это делает пакет для любого хоста (иначе Razor SDK подключал бы контроллеры модулей в обход
   `HOSTINGSTARTUPASSEMBLIES`; MOD0007).
@@ -71,6 +73,11 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
   сборки) — MOD0011, потому что MVC его не найдёт и маршруты ответят 404.
 - `CompilerVisibleProperty IsTestProject` в `Directory.Build.props` больше не нужен: хост, модуль и
   тест-проект различает `FusionModules.targets`.
+- `Web.csproj` в `load-test` перечисляет `Contracts.ICalculator` в
+  `fusion_modules_allowed_service_collisions`: четыре транспорта — альтернативы (см.
+  [«Проверки топологии»](#проверки-топологии)).
+- `modular-data` собирает модель пакетом `FusionModules.EntityFrameworkCore`, тесты всех трёх демо —
+  на `FusionModules.Testing`.
 
 Попутно исправлено то, что не связано с пакетом:
 
@@ -81,24 +88,47 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
 
 ### Данные: `modular-data`
 
-Пакета для EF Core у FusionModules нет — намеренно: это пятнадцать строк в собственном контексте.
-`AppContext` (`Web/Program.cs`) собирает модель из `ModuleBase.GetLoadedModules` — реестра модулей,
-которые активировал именно этот хост. `AppDomain.CurrentDomain.GetAssemblies()`
-даёт тот же ответ, пока процессом владеет один хост, и врёт, когда их несколько — в любой сборке
-интеграционных тестов загружены модули всех топологий. По той же причине у контекста свой ключ кеша
-модели (`ModuleAwareModelCacheKeyFactory`): EF Core кеширует модель по типу контекста, и без ключа,
-учитывающего модули, вторая топология в процессе молча получила бы модель первой.
+Модель EF Core собирает пакет `FusionModules.EntityFrameworkCore`, а контекст остаётся в три строки:
+
+```csharp
+builder.Services.AddDbContext<AppContext>(b => b
+    .UseNpgsql(builder.Configuration.GetConnectionString("Postgres"))
+    .UseModules(builder.Configuration));
+
+class AppContext(DbContextOptions<AppContext> options) : DbContext(options)
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+        modelBuilder.ApplyModuleConfigurations(this);
+}
+```
+
+`UseModules` берёт модули из `ModuleBase.GetLoadedModules` — реестра модулей, которые активировал
+именно этот хост. `AppDomain.CurrentDomain.GetAssemblies()` даёт тот же ответ, пока процессом владеет
+один хост, и врёт, когда их несколько — в любой сборке интеграционных тестов загружены модули всех
+топологий. По той же причине `UseModules` подменяет ключ кеша модели: EF Core кеширует модель по типу
+контекста, и без ключа, учитывающего модули, вторая топология в процессе молча получила бы модель
+первой. В `main` то же самое делали руками `ModuleFingerprint` и `ModuleAwareModelCacheKeyFactory` в
+`Web/Program.cs`; на модель переход не повлиял — `dotnet ef migrations has-pending-model-changes`
+изменений не видит.
+
+Какие модули дали какие сущности, пакет пишет в лог один раз на набор модулей:
+
+```text
+Model of AppContext: configurations from: Customers.Entities (Customer), Orders.Entities (Order),
+Monolith (Order); configured by several modules: Order (Orders.Entities, then Monolith)
+```
 
 `dotnet ef` поднимает хост, поэтому без фабрики модель миграции повторяла бы
 `HOSTINGSTARTUPASSEMBLIES` той оболочки, где запустили команду: не выставлена — пустая миграция,
 выставлена — таблицы одной топологии, и ни ошибки, ни предупреждения.
-[`DesignTimeDbContextFactory`](modular-data/Web/DesignTimeDbContextFactory.cs) называет модули сам, а
-имена берёт из `KnownModules`, который пакет генерирует из ссылок `Web`. Проверено:
+[`DesignTimeDbContextFactory`](modular-data/Web/DesignTimeDbContextFactory.cs) называет модули сам —
+`UseModules(KnownModules.Names)`, имена из `KnownModules`, который пакет генерирует из ссылок `Web`
+(в `main` список был написан в фабрике руками — копия csproj, которую никто не сверяет). Проверено:
 `dotnet ef dbcontext script` с `HOSTINGSTARTUPASSEMBLIES=Orders.Entities` выдаёт обе таблицы и внешний
 ключ, `dotnet ef migrations has-pending-model-changes` — изменений нет.
 
 **Порядок модулей.** `GetLoadedModules` отдаёт каждый модуль после модулей, на которые ссылается его
-сборка, а в остальном — по имени, и в этом порядке `AppContext` применяет конфигурации. Ссылки берутся
+сборка, а в остальном — по имени, и в этом порядке `ApplyModuleConfigurations` применяет конфигурации. Ссылки берутся
 из загруженных, полных сборок: у `Monolith` ссылка на `Customers.Entities` есть только там —
 `Customer` встречается лишь внутри `HasOne<Customer>()`, и в reference-сборке, которую видит компилятор,
 её нет. Поэтому ни порядок `HOSTINGSTARTUPASSEMBLIES`, ни `KnownModules` (это просто список по имени)
@@ -115,6 +145,59 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
 Миграции на старте катит одна реплика; остальные (и тесты топологий, которым нужна модель, а не
 база) выставляют `Database:Migrate=false` (`Database__Migrate` в окружении).
 
+## Проверки топологии
+
+**Два модуля с разными реализациями одного сервиса не стартуют.** Без этой проверки топология,
+которая по ошибке назвала два транспорта `load-test`, стартовала бы, и контроллер получил бы
+калькулятор того модуля, что назван последним. С ней старт падает:
+
+```text
+Two modules register the same service with different implementations. ...
+  Contracts.ICalculator
+    Local: Local.Calculator
+    RemoteGrpc: RemoteGrpc.Calculator
+Contracts.ICalculator is listed in the host's build as implemented by alternative modules
+(fusion_modules_allowed_service_collisions): load only one of Local, RemoteGrpc in a topology —
+remove the others from HOSTINGSTARTUPASSEMBLIES.
+```
+
+**MOD0014** задаёт тот же вопрос при сборке хоста — по всем модулям, на которые он ссылается. `Web` в
+`load-test` ссылается на все четыре транспорта, и MOD0014 предупреждает про `ICalculator`. Здесь это
+намеренно: транспорты — альтернативы одного ребра, и вместе их не грузит ни одна топология. Поэтому
+`Web.csproj` говорит об этом сборке:
+
+```xml
+<fusion_modules_allowed_service_collisions>Contracts.ICalculator</fusion_modules_allowed_service_collisions>
+```
+
+Разрешение не позволяет грузить транспорты вместе — оно говорит, что они альтернативы. Топологию,
+которая всё-таки назовёт два, остановит проверка при старте, и `ValidateModules()`, сгенерированный из
+этого же списка, добавит к ошибке последний абзац выше: загружайте один.
+
+**Строка `Topology:` в логе** — что собралось в этом процессе:
+
+```text
+Topology: modules: Customers.Entities, Orders.Entities, Monolith; endpoints: Monolith 2 (none from
+Customers.Entities, Orders.Entities)
+```
+
+Модули сущностей эндпоинтов не отдают, и строка называет их отдельно; для модуля, который должен
+отвечать на запросы, такое «none from» — это 404, ради которого строку и стоит читать.
+
+**Предупреждения при старте** о маршрутах, которые отдают два модуля, — например, `Monolith` и
+`OrdersMicroservice` в одном процессе отдают `GET /orders/unpaid` и ответили бы 500, — и об options,
+которые по-разному настраивают несколько модулей. В топологиях демо их нет.
+
+**`FusionModules.EntityFrameworkCore`** — модель из модулей в `modular-data` (см. выше).
+
+**`FusionModules.Testing`** — `ModularWebApplicationFactory<Program>` в трёх тестовых проектах: тест
+называет модули, а `HOSTINGSTARTUPASSEMBLIES` выставляет пакет. `UseConnectionStrings(("Postgres", "Host=127.0.0.1;Port=1;…"))` —
+строки подключения, которые разбираются, но никуда не ведут (для RabbitMQ в `load-test` —
+`host=127.0.0.1;port=1`); `Database:Migrate=false` тесты `modular-data` ставят сами, это ключ
+приложения; `WithoutApplicationHostedServices()` снимает фоновые сервисы модулей;
+`Services.Routes()` — маршруты хоста с модулем, который каждый отдаёт (`host` — у маршрутов самого
+приложения), без ручного обхода `EndpointDataSource`.
+
 ## Тесты
 
 Каждое демо поднимает хост в процессе теста с модулями, названными так же, как в
@@ -122,13 +205,11 @@ var builder = WebApplication.CreateBuilder(args).ValidateModules();
 
 | Демо | Что проверяют |
 |---|---|
-| `load-test` | у каждой из четырёх топологий есть `ICalculator`, и он из модуля этой топологии; локальный транспорт считает настоящим запросом; без транспорта калькулятора нет; опечатка в имени модуля не стартует; два транспорта в одном процессе — выигрывает последний |
+| `load-test` | у каждой из четырёх топологий есть `ICalculator`, и он из модуля этой топологии; локальный транспорт считает настоящим запросом; без транспорта калькулятора нет; опечатка в имени модуля не стартует; два транспорта в одном процессе не стартуют |
 | `modular-data` | таблицы, схемы и внешние ключи каждой топологии; три топологии в одном процессе — каждая со своей моделью; монолит в любом порядке модулей — та же модель и тот же объект в кеше; маршруты каждой топологии и только они |
-| `modular-endpoints` | топология на каждый модуль (internal-контроллер найден, скрипт `RazorModule` отдаётся из `_content`, чужих маршрутов нет), монолит со всеми модулями, топология без модулей, опечатка в имени модуля, порядок модулей в реестре не зависит от переменной |
+| `modular-endpoints` | топология на каждый модуль (internal-контроллер найден, скрипт `RazorModule` отдаётся из `_content`, чужих маршрутов нет), монолит со всеми модулями и какой модуль какие маршруты в нём отдаёт, топология без модулей, опечатка в имени модуля, порядок модулей в реестре не зависит от переменной |
 
-Последний тест `load-test` фиксирует то, от чего FusionModules 0.2 не защищает: транспорты —
-альтернативы, и если топология по ошибке назовёт два, процесс стартует, а контроллер получит
-калькулятор того модуля, что назван последним.
+Тесты поднимают хост через `ModularWebApplicationFactory<Program>` из `FusionModules.Testing`.
 
 ## Сборка
 
@@ -146,8 +227,8 @@ dotnet build modular-endpoints/modular-endpoints.slnx -warnaserror && dotnet tes
 
 `dotnet test` на .NET 10 SDK работает в режиме Microsoft.Testing.Platform — он включён в `global.json`.
 
-Пакет FusionModules ставится с nuget.org, как любой другой: ни `NuGet.config`, ни локального фида не
-нужно. Поэтому образы собираются тем же `docker compose`, контекст сборки — папка демо:
+Пакеты FusionModules ставятся с nuget.org, как любые другие: ни `NuGet.config`, ни локального фида не
+нужно. Поэтому образы собираются тем же `docker compose`, контекст сборки — папка демо.
 
 ```bash
 docker compose -f modular-data/docker-compose.yml build
